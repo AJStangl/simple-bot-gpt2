@@ -6,8 +6,7 @@ from sqlalchemy.orm import Session, Query
 from shared_code.fine_tuning.persistence.context import Context
 from shared_code.fine_tuning.persistence.training_row import TrainingDataRow
 
-os.environ['PsqlUser'] = ""
-os.environ['PsqlPassword'] = ""
+load_dotenv()
 
 context: Context = Context()
 session: Session = context.get_session()

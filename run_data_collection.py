@@ -9,25 +9,23 @@ from praw.reddit import Comment, Reddit, Submission
 from requests.adapters import HTTPAdapter
 from sqlalchemy.orm import Session
 from urllib3 import Retry
-
+from dotenv import load_dotenv
 from shared_code.fine_tuning.persistence.context import Context
 from shared_code.fine_tuning.persistence.training_row import TrainingDataRow
 
+load_dotenv()
 logger = logging.getLogger("training")
-
-os.environ['PsqlUser'] = ""
-os.environ['PsqlPassword'] = ""
 
 context: Context = Context()
 db_session: Session = context.get_session()
 
 session = requests.Session()
 
-adapter = HTTPAdapter(
-	max_retries=Retry(total=4, backoff_factor=1, allowed_methods=None, status_forcelist=[429, 500, 502, 503, 504]))
+adapter = HTTPAdapter(max_retries=Retry(total=4, backoff_factor=1, allowed_methods=None, status_forcelist=[429, 500, 502, 503, 504]))
+
 session.mount("https://", adapter)
 
-reddit = Reddit(client_id='iFQs7STCvaii2XQbiZSTEw', client_secret='cHFNK3c2Fa-tpVt9J-KmY86-xIcCoA',user_agent='script:%(bot_name)s:v%(bot_version)s (by /u/%(bot_author)s)')
+reddit = Reddit(site_name="")
 
 
 def get_author_comments(author, **kwargs):

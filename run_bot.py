@@ -1,11 +1,15 @@
+import os
 import sys
 import time
+from dotenv import load_dotenv
 
 from shared_code.bot.reddit_bot import RedditBot
 import logging
 
+load_dotenv()
+
 def main():
-	bot = RedditBot("ChadNoctorBot-GPT2", "CoopAndPabloPlayHouse")
+	bot = RedditBot(os.environ["BotName"], os.environ["Sub"])
 	bot.run()
 	try:
 		while True:
