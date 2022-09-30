@@ -25,6 +25,7 @@ class RedditBot:
 		self.reddit_handler = RedditHandler(self.reddit)
 
 	def poll_for_comments(self):
+		num_comments_seen = 0
 		while True:
 			try:
 				logging.info(f":: Starting Poll For {self.me} and monitoring {self.subreddit} Comments")
@@ -38,13 +39,15 @@ class RedditBot:
 					if comment.author.name == self.me.name:
 						continue
 
-					data = self.reddit_handler.process_comment(comment)
-					prompt = self.text_tagging.generate_training_row(data)
-					text = self.text_generation.generate_text(prompt)
-					cleaned = re.sub(r'(\<\|[\w\/ ]*\|\>)', ' ', text).strip()
-					logging.info(f":: Sending Reply {cleaned}")
-					comment.reply(body=text)
-					time.sleep(1)
+					if num_comments_seen % 9 == 0:
+						data = self.reddit_handler.process_comment(comment)
+						prompt = self.text_tagging.generate_training_row(data)
+						text = self.text_generation.generate_text(prompt)
+						cleaned = re.sub(r'(\<\|[\w\/ ]*\|\>)', ' ', text).strip()
+						logging.info(f":: Sending Reply {cleaned}")
+						comment.reply(body=text)
+						time.sleep(1)
+					num_comments_seen += 1
 
 			except Exception as e:
 				logging.error(f":: An exception has occurred {e}")
