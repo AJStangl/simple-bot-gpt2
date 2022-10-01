@@ -5,7 +5,7 @@ from transformers.tokenization_utils_base import TextInput
 logger = getLogger("TokenizerAdapter")
 
 
-class TokenizerAdapter:
+class TokenizerAdapter(object):
 	"""
 	Provides an interface to tokenization related activities. Intended to be extended on from this type.
 	"""
