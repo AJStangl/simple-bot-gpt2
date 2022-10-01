@@ -14,6 +14,7 @@ class TrainingDataRow(Base):
 	ParentId = Column(Text)
 	ParentAuthor = Column(Text)
 	ParentBody = Column(Text)
+	GrandParentAuthor = Column(Text)
 	CommentId = Column(Text, primary_key=True)
 	CommentBody = Column(Text)
 	CommentAuthor = Column(Text)

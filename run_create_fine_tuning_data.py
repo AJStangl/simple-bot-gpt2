@@ -1,16 +1,18 @@
 import os
-
+from dotenv import load_dotenv
 import pandas
 from sqlalchemy.orm import Session, Query
 
 from shared_code.fine_tuning.persistence.context import Context
 from shared_code.fine_tuning.persistence.training_row import TrainingDataRow
+from shared_code.handlers.comment_handler import CommentHandler
+from shared_code.tagging.reddit_data import RedditData
 
 load_dotenv()
 
 context: Context = Context()
 session: Session = context.get_session()
-
+comment_handler: CommentHandler = CommentHandler(None)
 
 def get_submission_context(subreddit: str, submission_title: str, submission_content: str, parent_author: str, submission_author: str):
 	if submission_content.startswith("https://"):
@@ -47,11 +49,41 @@ def generate_training_row(x) -> str:
 	reply_context: str = get_reply_context(x.ParentBody, x.CommentBody, x.SubmissionAuthor, x.CommentAuthor, x.ParentAuthor)
 	return f"{submission_context}{reply_context}"
 
+def gen_new(x) -> str:
+	foo = CommentHandler(None)
+
+	data = RedditData()
+
+	subreddit = x.Subreddit
+	submission_title = x.SubmissionTitle
+	submission_content = x.SubmissionContent
+	parent_author = x.ParentAuthor
+	submission_author = x.SubmissionAuthor
+	parent_comment = x.ParentBody
+	comment_body = x.CommentBody
+	comment_author = x.CommentAuthor
+	grand_parent_author = x.GrandParentAuthor
+
+	data.subreddit = subreddit
+	data.submission_title = submission_title
+	data.submission_content = submission_content
+	data.parent_author = parent_author
+	data.submission_author = submission_author
+	data.parent_comment = parent_comment
+	data.comment_body = comment_body
+	data.comment_author = comment_author
+	data.grand_parent_author = grand_parent_author
+
+	tagged_data = foo.tag_comment_for_reply(data, x.CommentAuthor, add_reply_tag=False)
+	return tagged_data
+
 
 if __name__ == '__main__':
 	query: Query = session.query(TrainingDataRow).where(TrainingDataRow.CommentAuthor == "Yuli-Ban")
 	df = pandas.read_sql(query.statement, query.session.bind)
-	training = df.apply(generate_training_row, axis=1)
-	df["TrainingString"] = df.apply(generate_training_row, axis=1)
-	df.to_csv("training.csv")
+	training = df.apply(gen_new, axis=1)
+	for elem in list(training):
+		print(elem)
+	# df["TrainingString"] = df.apply(generate_training_row, axis=1)
+	# df.to_csv("training.csv")
 

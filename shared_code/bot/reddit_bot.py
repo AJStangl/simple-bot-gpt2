@@ -8,9 +8,9 @@ import praw
 from praw import Reddit
 from praw.models import Redditor, Submission, Comment
 
-from shared_code.reddit.reddit_handler import RedditHandler
+from shared_code.handlers.comment_handler import CommentHandler
+from shared_code.tagging.reddit_data import RedditData
 from shared_code.text_generation.text_generation import ModelTextGenerator
-from shared_code.text_generation.text_tagging import Tagging
 
 
 class RedditBot:
@@ -21,8 +21,7 @@ class RedditBot:
 		self.comment_polling_thread = threading.Thread(target=self.poll_for_comments, args=(), daemon=True)
 		self.submission_polling_thread = threading.Thread(target=self.poll_for_submissions, args=(), daemon=True)
 		self.text_generation = ModelTextGenerator()
-		self.text_tagging = Tagging()
-		self.reddit_handler = RedditHandler(self.reddit)
+		self.comment_handler: CommentHandler = CommentHandler(self.reddit)
 
 	def poll_for_comments(self):
 		num_comments_seen = 0
@@ -39,14 +38,17 @@ class RedditBot:
 					if comment.author.name == self.me.name:
 						continue
 
-					if num_comments_seen % 9 == 0:
-						data = self.reddit_handler.process_comment(comment)
-						prompt = self.text_tagging.generate_training_row(data)
-						text = self.text_generation.generate_text(prompt)
-						cleaned = re.sub(r'(\<\|[\w\/ ]*\|\>)', ' ', text).strip()
-						logging.info(f":: Sending Reply {cleaned}")
-						comment.reply(body=text)
-						time.sleep(1)
+					reddit_data: RedditData = self.comment_handler.handle_comment(comment)
+					tagged_text: str = self.comment_handler.tag_comment_for_reply(reddit_data)
+					print(tagged_text)
+					# if num_comments_seen % 9 == 0:
+					# 	data = self.reddit_handler.process_comment(comment)
+					# 	prompt = self.text_tagging.generate_training_row(data)
+					# 	text = self.text_generation.generate_text(prompt)
+					# 	cleaned = re.sub(r'(\<\|[\w\/ ]*\|\>)', ' ', text).strip()
+					# 	logging.info(f":: Sending Reply {cleaned}")
+					# 	comment.reply(body=text)
+					# 	time.sleep(1)
 					num_comments_seen += 1
 
 			except Exception as e:

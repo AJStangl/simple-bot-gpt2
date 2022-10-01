@@ -5,7 +5,8 @@ import praw
 import prawcore
 import requests
 from praw import exceptions
-from praw.reddit import Comment, Reddit, Submission
+from praw.models.reddit.base import RedditBase
+from praw.reddit import Comment, Reddit, Submission, Redditor
 from requests.adapters import HTTPAdapter
 from sqlalchemy.orm import Session
 from urllib3 import Retry
@@ -26,6 +27,28 @@ adapter = HTTPAdapter(max_retries=Retry(total=4, backoff_factor=1, allowed_metho
 session.mount("https://", adapter)
 
 reddit = Reddit(site_name="")
+
+
+def get_grandparent_author(comment: Comment):
+	# First get the comment and load the parent
+	try:
+		grand_parent = comment.parent().parent()
+		# Check if the parent is a comment
+		# if isinstance(parent, Comment):
+		# 	parent: Comment = parent
+		# 	# Get the grandparent
+		# 	grand_parent = parent.parent()
+		# 	# We don't care if the grandparent is a sub or a comment, we simply want the author
+		# 	author: Redditor = grand_parent.author
+		# 	return author.name
+		# else:
+		# 	# Otherwise if the parent is a submission then simply take the author
+		# 	parent: Submission
+		# 	author: Redditor = parent.author
+		# 	return author.name
+		return grand_parent.author.name
+	except:
+		return None
 
 
 def get_author_comments(author, **kwargs):
@@ -76,6 +99,8 @@ def main():
 
 			# First load a non-dirty copy of the reddit
 			comment: Comment = reddit.comment(id=comment_id)
+
+			grand_parent_author = get_grandparent_author(comment)
 
 			try:
 				comment_body = comment.body
@@ -147,6 +172,7 @@ def main():
 			row.CommentId = comment_id
 			row.CommentBody = comment_body
 			row.CommentAuthor = comment_author
+			row.GrandParentAuthor = grand_parent_author
 			result = context.add(row, db_session)
 			if result is None:
 				logger.info(f":: Added {i} rows")
