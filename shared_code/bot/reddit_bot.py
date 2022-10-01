@@ -1,4 +1,6 @@
 import logging
+import os
+import random
 import re
 import sys
 import threading
@@ -38,17 +40,15 @@ class RedditBot:
 					if comment.author.name == self.me.name:
 						continue
 
-					reddit_data: RedditData = self.prompt_handler.handle_comment(comment)
-					tagged_text: str = self.prompt_handler.create_prompt_from_data(reddit_data)
-					print(tagged_text)
-					# if num_comments_seen % 9 == 0:
-					# 	data = self.reddit_handler.process_comment(comment)
-					# 	prompt = self.text_tagging.generate_training_row(data)
+					if random.randint(0, 100) >= int(os.environ["ReplyThreshold"]):
+						reddit_data: RedditData = self.prompt_handler.handle_comment(comment)
+						tagged_text: str = self.prompt_handler.create_prompt_from_data(reddit_data)
+						print(tagged_text)
 					# 	text = self.text_generation.generate_text(prompt)
 					# 	cleaned = re.sub(r'(\<\|[\w\/ ]*\|\>)', ' ', text).strip()
-					# 	logging.info(f":: Sending Reply {cleaned}")
+						logging.info(f":: Sending Reply")
 					# 	comment.reply(body=text)
-					# 	time.sleep(1)
+						time.sleep(1)
 					num_comments_seen += 1
 
 			except Exception as e:
@@ -66,7 +66,13 @@ class RedditBot:
 						continue
 
 					logging.info(f":: Submission {submission} found")
-					print(submission.title, submission.selftext)
+					reddit_data: RedditData = self.prompt_handler.handle_submission(submission)
+					prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
+					print(prompt)
+					# 	text = self.text_generation.generate_text(prompt)
+					# 	cleaned = re.sub(r'(\<\|[\w\/ ]*\|\>)', ' ', text).strip()
+					logging.info(f":: Sending Reply To Submission")
+					# 	submission.reply(body=text)
 					time.sleep(1)
 
 			except Exception as e:

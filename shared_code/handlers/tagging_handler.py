@@ -60,6 +60,10 @@ class TaggingHandler:
 
 		return data
 
+	@staticmethod
+	def handle_submission(submission: Submission) -> RedditData:
+		pass
+
 	def create_training_from_data(self, reddit_data: RedditData) -> str:
 		# First create some context for discussion
 		tagged_submission = self._tagging.tag_submission(
