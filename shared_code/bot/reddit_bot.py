@@ -10,7 +10,7 @@ import praw
 from praw import Reddit
 from praw.models import Redditor, Submission, Comment
 
-from shared_code.handlers.comment_handler import TaggingHandler
+from shared_code.handlers.tagging_handler import TaggingHandler
 from shared_code.tagging.reddit_data import RedditData
 from shared_code.text_generation.text_generation import ModelTextGenerator
 
