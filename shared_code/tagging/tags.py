@@ -40,7 +40,12 @@ class Tags(object):
 		"""
 		return f"{self._open_tag}{tag_type}{self._close_tag}"
 
-	def get_comment_reply_tag(self, submission_author: str, grand_parent_author: typing.Optional[str], parent_author: typing.Optional[str], comment_author: typing.Optional[str], reply_author: typing.Optional[str]) -> str:
+	def get_comment_reply_tag(self,
+							  submission_author: str,
+							  grand_parent_author: typing.Optional[str],
+							  parent_author: typing.Optional[str],
+							  comment_author: typing.Optional[str],
+							  reply_author: typing.Optional[str]) -> str:
 
 		if submission_author == reply_author:
 			return self._create_tag(self.own_content_start_tag)
@@ -76,9 +81,9 @@ class Tags(object):
 			tag += f"{self._create_tag(self.title_start_tag)}{title}{self._create_tag(self.title_end_tag)}{self._create_tag(self.text_start_tag)}{body}{self._create_tag(self.text_end_tag)}"
 			return tag
 
-	def tag_comment(self, submission_author: str, comment_author: str, parent_author: str, grandparent_author: str, body: str, include_author: bool):
+	def tag_comment(self, submission_author: str, comment_author: str, parent_author: str, grandparent_author: str,
+					body: str, include_author: bool):
 		tag: str = f"{self._open_tag}"
-
 		if submission_author == comment_author:
 			tag += f"{self.post_reply_start_tag}"
 			if include_author:

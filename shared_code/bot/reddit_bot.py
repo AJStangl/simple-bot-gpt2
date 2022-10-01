@@ -8,7 +8,7 @@ import praw
 from praw import Reddit
 from praw.models import Redditor, Submission, Comment
 
-from shared_code.handlers.comment_handler import CommentHandler
+from shared_code.handlers.comment_handler import TaggingHandler
 from shared_code.tagging.reddit_data import RedditData
 from shared_code.text_generation.text_generation import ModelTextGenerator
 
@@ -21,7 +21,7 @@ class RedditBot:
 		self.comment_polling_thread = threading.Thread(target=self.poll_for_comments, args=(), daemon=True)
 		self.submission_polling_thread = threading.Thread(target=self.poll_for_submissions, args=(), daemon=True)
 		self.text_generation = ModelTextGenerator()
-		self.comment_handler: CommentHandler = CommentHandler(self.reddit)
+		self.prompt_handler: TaggingHandler = TaggingHandler(self.reddit)
 
 	def poll_for_comments(self):
 		num_comments_seen = 0
@@ -38,8 +38,8 @@ class RedditBot:
 					if comment.author.name == self.me.name:
 						continue
 
-					reddit_data: RedditData = self.comment_handler.handle_comment(comment)
-					tagged_text: str = self.comment_handler.tag_comment_for_reply(reddit_data)
+					reddit_data: RedditData = self.prompt_handler.handle_comment(comment)
+					tagged_text: str = self.prompt_handler.create_prompt_from_data(reddit_data)
 					print(tagged_text)
 					# if num_comments_seen % 9 == 0:
 					# 	data = self.reddit_handler.process_comment(comment)

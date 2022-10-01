@@ -5,14 +5,14 @@ from sqlalchemy.orm import Session, Query
 
 from shared_code.fine_tuning.persistence.context import Context
 from shared_code.fine_tuning.persistence.training_row import TrainingDataRow
-from shared_code.handlers.comment_handler import CommentHandler
+from shared_code.handlers.comment_handler import TaggingHandler
 from shared_code.tagging.reddit_data import RedditData
 
 load_dotenv()
 
 context: Context = Context()
 session: Session = context.get_session()
-comment_handler: CommentHandler = CommentHandler(None)
+comment_handler: TaggingHandler = TaggingHandler(None)
 
 def get_submission_context(subreddit: str, submission_title: str, submission_content: str, parent_author: str, submission_author: str):
 	if submission_content.startswith("https://"):
@@ -50,7 +50,7 @@ def generate_training_row(x) -> str:
 	return f"{submission_context}{reply_context}"
 
 def gen_new(x) -> str:
-	foo = CommentHandler(None)
+	foo = TaggingHandler(None)
 
 	data = RedditData()
 
@@ -74,7 +74,7 @@ def gen_new(x) -> str:
 	data.comment_author = comment_author
 	data.grand_parent_author = grand_parent_author
 
-	tagged_data = foo.tag_comment_for_reply(data, x.CommentAuthor, add_reply_tag=False)
+	tagged_data = foo.create_training_from_data(data)
 	return tagged_data
 
 
@@ -82,8 +82,6 @@ if __name__ == '__main__':
 	query: Query = session.query(TrainingDataRow).where(TrainingDataRow.CommentAuthor == "Yuli-Ban")
 	df = pandas.read_sql(query.statement, query.session.bind)
 	training = df.apply(gen_new, axis=1)
-	for elem in list(training):
-		print(elem)
-	# df["TrainingString"] = df.apply(generate_training_row, axis=1)
-	# df.to_csv("training.csv")
+	df["TrainingString"] = df.apply(gen_new, axis=1)
+	df.to_csv("training_2.csv")
 

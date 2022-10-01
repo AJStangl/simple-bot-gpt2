@@ -8,7 +8,7 @@ from shared_code.tagging.reddit_data import RedditData
 from shared_code.tagging.tags import Tags
 
 
-class CommentHandler:
+class TaggingHandler:
 	def __init__(self, reddit: Optional[Reddit]):
 		self._reddit_instance: Optional[Reddit] = reddit
 		self._tagging: Tags = Tags()
@@ -60,14 +60,8 @@ class CommentHandler:
 
 		return data
 
-	def tag_comment_for_reply(self, reddit_data: RedditData, reply_author=None, add_reply_tag=True) -> str:
-
-		if self._reddit_instance is not None:
-			reply_author: Redditor = self._reddit_instance.user.me()
-			reply_author_name = reply_author.name
-		else:
-			reply_author_name = reply_author
-
+	def create_training_from_data(self, reddit_data: RedditData) -> str:
+		# First create some context for discussion
 		tagged_submission = self._tagging.tag_submission(
 			subreddit=reddit_data.subreddit,
 			is_link_submission=reddit_data.is_link(),
@@ -75,43 +69,75 @@ class CommentHandler:
 			body=reddit_data.submission_content
 		)
 
-		is_comment_reply = reddit_data.parent_comment is not None
-		tagged_parent = None
-		if is_comment_reply:
-			tagged_parent = self._tagging.tag_comment(
-			submission_author=reddit_data.submission_author,
-			comment_author=reddit_data.parent_author,
-			parent_author=reddit_data.parent_author,
-			grandparent_author=reddit_data.grand_parent_author,
-			body=reddit_data.parent_comment,
-			include_author=True)
+		# For training the comment is the reply and the parent is the comment. If there is no parent then it's a reply
+		# Directly to a link post.
+		parent_comment = None
+		if reddit_data.parent_comment is not None:
+			parent_comment = self._tagging.tag_comment(
+				submission_author=reddit_data.submission_author,
+				comment_author=reddit_data.parent_author,
+				parent_author=reddit_data.grand_parent_author,
+				grandparent_author="NO-PARENT",
+				# To be internally consistent if we will assign the grandparent to a constant
+				body=reddit_data.parent_comment,
+				include_author=True  # For a parent comment we will choose to include the author.
+			)
 
-		tagged_comment = self._tagging.tag_comment(
+		# The reply comment in the context of training is as defined but we choose to not include the author
+		reply_comment = self._tagging.tag_comment(
 			submission_author=reddit_data.submission_author,
 			comment_author=reddit_data.comment_author,
 			parent_author=reddit_data.parent_author,
 			grandparent_author=reddit_data.grand_parent_author,
 			body=reddit_data.comment_body,
-			include_author=(add_reply_tag is True)
+			include_author=False
 		)
 
+		result = tagged_submission
+		if parent_comment:
+			result += parent_comment
+
+		result += reply_comment
+
+		# In this specific context we can ignore the generation of an ending tag.
+		return result
+
+	def create_prompt_from_data(self, reddit_data: RedditData) -> str:
+		# Grab an instance of the bot replying
+		reply_author = self._reddit_instance.user.me().name
+
+		# Then create some context for discussion
+		tagged_submission = self._tagging.tag_submission(
+			subreddit=reddit_data.subreddit,
+			is_link_submission=reddit_data.is_link(),
+			title=reddit_data.submission_title,
+			body=reddit_data.submission_content
+		)
+
+		# In the case of a prompt we assume that there is no reply_comment, that is what we are making. So after we establish
+		# the base context we will treat the comment as the parent.
+		parent_comment = self._tagging.tag_comment(
+				submission_author=reddit_data.submission_author,
+				comment_author=reddit_data.comment_author,
+				parent_author=reddit_data.parent_author,
+				grandparent_author=reddit_data.grand_parent_author,
+				# To be internally consistent if we will assign the grandparent to a constant
+				body=reddit_data.comment_body,
+				include_author=True  # For a parent comment we will choose to include the author.
+			)
+
+		# Finally, we will include the reply tag for prompt generation. This will inform us of the correct tag to use.
 		reply_tag = self._tagging.get_comment_reply_tag(
 			submission_author=reddit_data.submission_author,
 			grand_parent_author=reddit_data.grand_parent_author,
 			parent_author=reddit_data.parent_author,
-			reply_author=reply_author_name,
+			reply_author=reply_author,
 			comment_author=reddit_data.comment_author
 		)
 
-		result = f"{tagged_submission}"
-
-		if tagged_parent is not None:
-			result += tagged_parent
-
-		result += tagged_comment
-
-		if add_reply_tag:
-			result += reply_tag
-
+		# in the case of a submission, we are not handling that here; but, it would simply be the context with the reply
+		# tag
+		result = tagged_submission
+		result += parent_comment
+		result += reply_tag
 		return result
-

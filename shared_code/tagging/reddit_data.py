@@ -8,8 +8,7 @@ class RedditData(object):
 				 parent_comment=None,
 				 comment_body=None,
 				 comment_author=None,
-				 grand_parent_author=None,
-				 is_link_submission=False):
+				 grand_parent_author=None):
 
 		self.subreddit = subreddit
 		self.submission_title = submission_title

@@ -1,4 +1,4 @@
-from shared_code.handlers.comment_handler import CommentHandler
+from shared_code.handlers.comment_handler import TaggingHandler
 from shared_code.tagging.reddit_data import RedditData
 
 
@@ -34,7 +34,7 @@ class Tagging:
 
 	def generate_training_row(self, x: RedditData) -> str:
 		pass
-		# foo = CommentHandler(None)
+		# foo = TaggingHandler(None)
 		# data = RedditData()
 		# data.subreddit = subreddit
 		# data.submission_title = submission_title
