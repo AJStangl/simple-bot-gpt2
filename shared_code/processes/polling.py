@@ -49,7 +49,7 @@ class StreamPolling(object):
 					logging.debug(f"Comment {comment} found")
 					if comment.author.name == self.me.name:
 						continue
-					if self._should_reply():
+					if self._should_reply(comment):
 						logging.info(f"Processing Response For Comment: {comment}")
 						reddit_data: RedditData = self.prompt_handler.handle_comment(comment)
 						prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
