@@ -62,7 +62,32 @@ class TaggingHandler:
 
 	@staticmethod
 	def handle_submission(submission: Submission) -> RedditData:
-		pass
+		data = RedditData()
+
+		subreddit: Reddit = submission.subreddit
+		submission_author: Redditor = submission.author
+		submission_title: str = submission.title
+
+		if submission.is_self:
+			submission_content: str = submission.selftext
+		else:
+			submission_content: str = submission.url
+
+		parent: Submission = submission
+		grand_parent: Submission = parent
+		grand_parent_author = grand_parent.author.name
+
+		data.subreddit = subreddit
+		data.submission_title = submission_title
+		data.submission_content = submission_content
+		data.parent_author = None
+		data.submission_author = submission_author
+		data.parent_comment = None
+		data.comment_body = None
+		data.comment_author = None
+		data.grand_parent_author = grand_parent_author
+
+		return data
 
 	def create_training_from_data(self, reddit_data: RedditData) -> str:
 		# First create some context for discussion
@@ -117,6 +142,18 @@ class TaggingHandler:
 			title=reddit_data.submission_title,
 			body=reddit_data.submission_content
 		)
+
+		# If the incoming data does not have a comment body, we assume it is a submission
+		if reddit_data.comment_body is None:
+			result = tagged_submission
+			result += self._tagging.get_comment_reply_tag(
+				submission_author=reddit_data.submission_author,
+				grand_parent_author=None,
+				parent_author=None,
+				comment_author=None,
+				reply_author=reply_author
+			)
+			return result
 
 		# In the case of a prompt we assume that there is no reply_comment, that is what we are making. So after we establish
 		# the base context we will treat the comment as the parent.

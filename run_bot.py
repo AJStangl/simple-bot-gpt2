@@ -20,7 +20,7 @@ def main():
 
 
 if __name__ == '__main__':
-	logging.basicConfig(format='%(message)s', level=logging.INFO)
+	logging.basicConfig(format=f'::%(thread)s - {os.environ["BotName"]} - %(message)s', level=logging.INFO)
 	main()
 
 
