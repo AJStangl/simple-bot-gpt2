@@ -39,7 +39,7 @@ class StreamPolling(object):
 						reddit_data: RedditData = self.prompt_handler.handle_comment(comment)
 						prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
 						text = self.text_generation.generate_text(prompt)
-						logging.info(f"Sending Reply with reply:\n {text}\nFor Prompt: {prompt}")
+						logging.info(f"Sending Reply with reply:\n {text}\nFor Prompt: \n{prompt}\n")
 						comment.reply(body=text)
 						time.sleep(1)
 					num_comments_seen += 1
@@ -62,7 +62,7 @@ class StreamPolling(object):
 					reddit_data: RedditData = self.prompt_handler.handle_submission(submission)
 					prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
 					text: str = self.text_generation.generate_text(prompt)
-					logging.info(f"Sending Reply with reply:\n {text}\nFor Prompt: {prompt}")
+					logging.info(f"Sending Reply with reply:\n {text}\nFor Prompt: \n{prompt}\n")
 					submission.reply(body=text)
 					time.sleep(1)
 
