@@ -26,7 +26,7 @@ adapter = HTTPAdapter(max_retries=Retry(total=4, backoff_factor=1, allowed_metho
 
 session.mount("https://", adapter)
 
-reddit = Reddit(site_name="")
+reddit = Reddit(site_name="Yuli-Ban-Bot-GPT2")
 
 
 def get_grandparent_author(comment: Comment):
@@ -54,7 +54,7 @@ def get_grandparent_author(comment: Comment):
 def get_author_comments(author, **kwargs):
 	base_address = 'https://api.pushshift.io/reddit'
 	r = session.get(
-		f"{base_address}/comment/search/?author={author}&sort=asc&sort_type=created_utc&filter=created_utc,parent_id,permalink,id,author,subreddit",
+		f"{base_address}/comment/search/?author={author}&sort=desc&sort_type=created_utc&filter=created_utc,parent_id,permalink,id,author,subreddit",
 		params=kwargs)
 	logger.info(r.url)
 	try:
@@ -69,7 +69,7 @@ def main():
 	i = 0
 	before = None
 	while True:
-		comments: dict = get_author_comments(author="Yuli-Ban", before=before, limit=100)
+		comments: dict = get_author_comments(author="GusterIs4Lovers", before=before, limit=100)
 		if not comments: break
 
 		for comment in comments:

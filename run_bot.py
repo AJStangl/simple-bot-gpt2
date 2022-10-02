@@ -1,12 +1,12 @@
-import os
-import sys
-import time
-from dotenv import load_dotenv
-
-from shared_code.bot.reddit_bot import RedditBot
 import logging
+import os
+import time
+
+from dotenv import load_dotenv
+from shared_code.bot.reddit_bot import RedditBot
 
 load_dotenv()
+
 
 def main():
 	bot = RedditBot(os.environ["BotName"], os.environ["Sub"])
@@ -20,8 +20,5 @@ def main():
 
 
 if __name__ == '__main__':
-	logging.basicConfig(format=f'::%(thread)s - {os.environ["BotName"]} - %(message)s', level=logging.INFO)
+	logging.basicConfig(format=f':: Thead:%(thread)s - {os.environ["BotName"]} - %(message)s', level=logging.INFO)
 	main()
-
-
-
