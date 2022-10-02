@@ -19,6 +19,15 @@ class StreamPolling(object):
 		self.me: Redditor = self.reddit.user.me()
 		self.prompt_handler: TaggingHandler = TaggingHandler(self.reddit)
 		self.text_generation = ModelTextGenerator()
+		self.reply_threshold = int(os.environ["ReplyThreshold"])
+
+	def _should_reply(self) -> bool:
+		random_reply_value = random.randint(0, 100)
+		if random_reply_value >= self.reply_threshold:
+			return True
+		else:
+			logging.info(f"Reply Value {random_reply_value} is less than {self.reply_threshold}. Skipping...")
+			return False
 
 	def poll_for_comments(self):
 		num_comments_seen = 0
@@ -34,12 +43,11 @@ class StreamPolling(object):
 					logging.info(f"Comment {comment} found")
 					if comment.author.name == self.me.name:
 						continue
-
-					if random.randint(0, 100) >= int(os.environ["ReplyThreshold"]):
+					if self._should_reply():
 						reddit_data: RedditData = self.prompt_handler.handle_comment(comment)
 						prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
-						text = self.text_generation.generate_text(prompt)
-						logging.info(f"Sending Reply with reply:\n {text}\nFor Prompt: \n{prompt}\n")
+						text, raw_result = self.text_generation.generate_text(prompt)
+						logging.info(f"Sending Reply For Prompt:\n\n{prompt}\n\nWith Generated Sample:\n\n{raw_result}\n\n")
 						comment.reply(body=text)
 						time.sleep(1)
 					num_comments_seen += 1
@@ -61,8 +69,8 @@ class StreamPolling(object):
 					logging.info(f"Submission {submission} found")
 					reddit_data: RedditData = self.prompt_handler.handle_submission(submission)
 					prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
-					text: str = self.text_generation.generate_text(prompt)
-					logging.info(f"Sending Reply with reply:\n {text}\nFor Prompt: \n{prompt}\n")
+					text, raw_result = self.text_generation.generate_text(prompt)
+					logging.info(f"Sending Reply For Prompt:\n\n{prompt}\n\nWith Generated Sample:\n\n{raw_result}\n\n")
 					submission.reply(body=text)
 					time.sleep(1)
 

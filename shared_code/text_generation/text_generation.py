@@ -22,7 +22,8 @@ class ModelTextGenerator:
 		self.model_path: str = os.environ["Model"]
 		self.model = LanguageGenerationModel("gpt2", self.model_path, use_cuda=False)
 
-	def capture_tag(self, test_string: str, expected_tags: [str] = ["<|eor|>", "<|eoopr|>", "<|eoocr|>"]):
+	@staticmethod
+	def capture_tag(test_string: str, expected_tags: [str] = ["<|eor|>", "<|eoopr|>", "<|eoocr|>"]):
 		regex = r"\<\|(.*)\|\>"
 
 		matches = re.finditer(regex, test_string, re.MULTILINE)
@@ -49,6 +50,7 @@ class ModelTextGenerator:
 		start_time = time.time()
 
 		reply = None
+		raw_response = None
 		output_list = []
 		while reply is None:
 			samples = self.model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False)
@@ -62,10 +64,11 @@ class ModelTextGenerator:
 			result = self.capture_tag(cleaned)
 			finalized = re.sub(r'(\<\|[\w\/ ]*\|\>)', ' ', result).strip()
 			if result is not None:
+				raw_response = text
 				reply = finalized
 
 		end_time = time.time()
 		duration = round(end_time - start_time, 1)
 
 		logging.info(f'{len(output_list)} sample(s) of text generated in {duration} seconds.')
-		return reply
+		return reply, raw_response
