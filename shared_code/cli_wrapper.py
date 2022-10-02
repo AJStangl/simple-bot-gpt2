@@ -5,6 +5,8 @@ import time
 import click
 from dotenv import load_dotenv
 
+from shared_code.app.reddit_data_collection import RedditDataCollection
+from shared_code.app.run_bot import BotRunner
 from shared_code.bot.reddit_bot import RedditBot
 
 load_dotenv()
@@ -32,20 +34,18 @@ def cli3():
 			  default='CoopAndPabloPlayHouse')
 @click.option("--model", prompt='specify the path to the model to use. Example. /mnt/models/foo-bot/', default=None)
 def run_bot(bot_name: str, sub_reddit: str):
-	logging.basicConfig(format=f':: Thead:%(thread)s|%(asctime)s|{bot_name}|%(message)s', level=logging.INFO)
-	bot = RedditBot(bot_name, sub_reddit)
-	bot.run()
-	try:
-		while True:
-			time.sleep(1)
-	except KeyboardInterrupt:
-		logging.info('Shutdown')
-		bot.stop()
+	BotRunner.run_bot(bot_name, sub_reddit)
+
+
+@cli2.command()
+@click.option("--redditor", prompt='The name of the redditor to collect data on', default='generic')
+def collection_data(redditor: str):
+	logging.basicConfig(format=f':: Thead:%(thread)s|%(asctime)s|%(message)s', level=logging.INFO)
+	RedditDataCollection().run(redditor)
 
 
 cli = click.CommandCollection(sources=[cli1, cli2, cli3])
 
 if __name__ == '__main__':
-	logging.basicConfig(format=f':: Thead:%(thread)s|%(asctime)s|{os.environ["BotName"]}|%(message)s',
-						level=logging.INFO)
+	logging.basicConfig(format=f':: Thead:%(thread)s|%(asctime)s|{os.environ["BotName"]}|%(message)s', level=logging.INFO)
 	cli()
