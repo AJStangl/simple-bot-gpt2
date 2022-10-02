@@ -7,9 +7,14 @@ from shared_code.bot.reddit_bot import RedditBot
 
 load_dotenv()
 
+#TODO: Shift to cli command
+bot_name = os.environ["BotName"]
+sub_reddit = os.environ["Sub"]
 
-def main():
-	bot = RedditBot(os.environ["BotName"], os.environ["Sub"])
+
+if __name__ == '__main__':
+	logging.basicConfig(format=f':: Thead:%(thread)s|%(asctime)s|{os.environ["BotName"]}|%(message)s', level=logging.INFO)
+	bot = RedditBot(bot_name, sub_reddit)
 	bot.run()
 	try:
 		while True:
@@ -17,8 +22,3 @@ def main():
 	except KeyboardInterrupt:
 		logging.info('Shutdown')
 		bot.stop()
-
-
-if __name__ == '__main__':
-	logging.basicConfig(format=f':: Thead:%(thread)s - {os.environ["BotName"]} - %(message)s', level=logging.INFO)
-	main()

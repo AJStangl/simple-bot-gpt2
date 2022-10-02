@@ -24,9 +24,9 @@ class StreamPolling(object):
 
 	def _should_reply(self, comment: Comment) -> bool:
 		random_reply_value = random.randint(0, 100)
-		is_bot: bool = comment.author_flair_text.__contains__("Bot")
-		if not is_bot:
-			return True
+		# is_bot: bool = comment.author_flair_text.__contains__("Bot")
+		# if not is_bot:
+		# 	return True
 
 		if random_reply_value >= self.reply_threshold:
 			return True

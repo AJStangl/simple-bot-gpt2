@@ -13,7 +13,13 @@ context: Context = Context()
 session: Session = context.get_session()
 tagging_handler: TaggingHandler = TaggingHandler(reddit=None)
 
+
 def generate_training_data(x) -> str:
+	"""
+
+	:param x:
+	:return:
+	"""
 
 	data = RedditData()
 
