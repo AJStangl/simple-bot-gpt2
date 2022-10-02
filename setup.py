@@ -30,7 +30,7 @@ setup(
 	],
 	entry_points={
 		'console_scripts': [
-			'run-bot = run_bot:main',
+			'simple-bot-gpt2 = shared_code.cli_wrapper:cli',
 		],
 	},
 )
