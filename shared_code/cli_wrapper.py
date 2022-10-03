@@ -39,7 +39,7 @@ def run_bot(bot_name: str, sub_reddit: str):
 
 @cli2.command()
 @click.option("--redditor", prompt='The name of the redditor to collect data on', default='generic')
-def collection_data(redditor: str):
+def collect_data(redditor: str):
 	logging.basicConfig(format=f':: Thead:%(thread)s|%(asctime)s|%(message)s', level=logging.INFO)
 	RedditDataCollection().run(redditor)
 
