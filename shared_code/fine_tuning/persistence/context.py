@@ -43,3 +43,10 @@ class Context:
 			return True
 		else:
 			return False
+
+	@staticmethod
+	def search_by_id(comment_ids: [str], session: Session) -> [str]:
+		query = session.query(TrainingDataRow.CommentId).filter(TrainingDataRow.CommentId.in_(comment_ids))
+		result = list(session.execute(query).scalars())
+		return result
+

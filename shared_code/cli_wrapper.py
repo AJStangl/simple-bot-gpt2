@@ -34,18 +34,18 @@ def cli3():
 			  default='CoopAndPabloPlayHouse')
 @click.option("--model", prompt='specify the path to the model to use. Example. /mnt/models/foo-bot/', default=None)
 def run_bot(bot_name: str, sub_reddit: str):
+	logging.basicConfig(format=f':: Thead:%(thread)s|%(asctime)s|{bot_name}|{sub_reddit}|:: %(message)s', level=logging.INFO)
 	BotRunner.run_bot(bot_name, sub_reddit)
 
 
 @cli2.command()
 @click.option("--redditor", prompt='The name of the redditor to collect data on', default='generic')
 def collect_data(redditor: str):
-	logging.basicConfig(format=f':: Thead:%(thread)s|%(asctime)s|%(message)s', level=logging.INFO)
+	logging.basicConfig(format=f':: Thead:%(thread)s|%(asctime)s|{redditor}|:: %(message)s', level=logging.INFO)
 	RedditDataCollection().run(redditor)
 
 
 cli = click.CommandCollection(sources=[cli1, cli2, cli3])
 
 if __name__ == '__main__':
-	logging.basicConfig(format=f':: Thead:%(thread)s|%(asctime)s|{os.environ["BotName"]}|%(message)s', level=logging.INFO)
 	cli()
