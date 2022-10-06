@@ -18,7 +18,7 @@ class StreamPolling(object):
 		self.subreddit = subreddit
 		self.me: Redditor = self.reddit.user.me()
 		self.prompt_handler: TaggingHandler = TaggingHandler(self.reddit)
-		self.text_generation = ModelTextGenerator()
+		self.text_generation = ModelTextGenerator(self.me.name)
 		self.reply_threshold = int(os.environ["ReplyThreshold"])
 		self.flair_id_map = os.environ["FlairId"]
 

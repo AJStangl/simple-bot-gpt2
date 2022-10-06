@@ -28,7 +28,8 @@ class RedditDataCollection:
 		self.session.mount("https://", self.adapter)
 		self.reddit = Reddit(site_name="Yuli-Ban-Bot-GPT2")
 
-	def get_grandparent_author(self, comment: Comment):
+	@staticmethod
+	def get_grandparent_author(comment: Comment):
 		# First get the comment and load the parent
 		try:
 			parent = comment.parent()

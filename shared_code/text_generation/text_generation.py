@@ -9,7 +9,7 @@ from simpletransformers.language_generation import LanguageGenerationModel
 
 
 class ModelTextGenerator:
-	def __init__(self):
+	def __init__(self, bot_name: str):
 		self.text_generation_parameters = {
 			'max_length': 1024,
 			'num_return_sequences': 1,
@@ -19,7 +19,7 @@ class ModelTextGenerator:
 			'repetition_penalty': 1.008,
 			'stop_token': '<|endoftext|>'
 		}
-		self.model_path: str = os.environ["Model"]
+		self.model_path: str = os.environ[f"{bot_name}"]
 		self.model = LanguageGenerationModel("gpt2", self.model_path, use_cuda=False)
 
 	@staticmethod

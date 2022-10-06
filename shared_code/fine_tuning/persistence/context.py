@@ -18,7 +18,8 @@ class Context:
 	def get_session(self):
 		return Session(self._engine)
 
-	def close_session(self, session: Session):
+	@staticmethod
+	def close_session(session: Session):
 		session.close()
 
 	@staticmethod
