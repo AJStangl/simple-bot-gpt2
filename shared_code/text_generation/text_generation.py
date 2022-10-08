@@ -20,7 +20,7 @@ class ModelTextGenerator:
 			'stop_token': '<|endoftext|>'
 		}
 		self.model_path: str = os.environ[f"{bot_name}"]
-		self.model = LanguageGenerationModel("gpt2", self.model_path, use_cuda=False)
+		self.model = LanguageGenerationModel("gpt2", self.model_path, use_cuda=True)
 
 	@staticmethod
 	def capture_tag(test_string: str, expected_tags: [str] = ["<|eor|>", "<|eoopr|>", "<|eoocr|>"]):

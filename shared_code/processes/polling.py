@@ -21,12 +21,19 @@ class StreamPolling(object):
 		self.text_generation = ModelTextGenerator(self.me.name)
 		self.reply_threshold = int(os.environ["ReplyThreshold"])
 		self.flair_id_map = os.environ["FlairId"]
+		self.tigger_words: [str] = [item.lower() for item in os.environ["TriggerWords"].split(",")]
 
 	def _should_reply(self, comment: Comment) -> bool:
-		random_reply_value = random.randint(0, 100)
-		# is_bot: bool = comment.author_flair_text.__contains__("Bot")
-		# if not is_bot:
-		# 	return True
+		random_reply_value = random.randint(0, 1000)
+		body = comment.body or ""
+		triggered: int = len([item for item in self.tigger_words if body.lower().__contains__(item.lower())])
+		if triggered > 0 and self.me.name == "SportsFanGhost-Bot":
+			logging.info(f"Triggered")
+			return True
+
+		# Hack for now
+		if self.me.name == "SportsFanGhost-Bot":
+			return False
 
 		if random_reply_value >= self.reply_threshold:
 			return True
@@ -49,6 +56,7 @@ class StreamPolling(object):
 					logging.debug(f"Comment {comment} found")
 					if comment.author.name == self.me.name:
 						continue
+
 					if self._should_reply(comment):
 						logging.info(f"Processing Response For Comment: {comment}")
 						reddit_data: RedditData = self.prompt_handler.handle_comment(comment)
@@ -68,6 +76,10 @@ class StreamPolling(object):
 			try:
 				logging.info(f"Starting Poll For {self.me} and monitoring {self.subreddit} Submissions")
 				for submission in self.subreddit.stream.submissions(pause_after=0, skip_existing=True):
+					# Hack for now
+					if self.me.name == "SportsFanGhost-Bot":
+						logging.debug(f"Barry Cant Talk Right Now...")
+						continue
 					submission: Submission = submission
 					if submission is None:
 						logging.debug("No New Submissions, continuing...")

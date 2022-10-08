@@ -1,4 +1,5 @@
 import logging
+import os
 
 import click
 from dotenv import load_dotenv
@@ -30,6 +31,8 @@ def cli3():
 @click.option("--sub-reddit", prompt='specify the sub-reddit name(s). Example. CoopAndPabloPlayHouse+THE_Pablop+SubSimGPT2Interactive', default='CoopAndPabloPlayHouse')
 def run_bot(bot_name: str, sub_reddit: str):
 	logging.basicConfig(format=f':: Thead:%(thread)s|%(asctime)s|{bot_name}|{sub_reddit}|:: %(message)s', level=logging.INFO)
+	# if bot_name ==
+	# os.environ["UseTrigger"] = "true"
 	BotRunner.run_bot(bot_name, sub_reddit)
 
 
