@@ -34,17 +34,18 @@ class ModelTextGenerator:
 				"Match {matchNum} was found at {start}-{end}: {match}".format(matchNum=matchNum, start=match.start(),
 																				 end=match.end(), match=match.group()))
 
-			if match.group() == expected_tags[0]:
-				return_string = test_string.replace(match.group(), "")
-				return return_string
+			for tag in expected_tags:
+				if match.group() == tag:
+					return_string = test_string.replace(match.group(), "")
+					return return_string
 
-			for groupNum in range(0, len(match.groups())):
-				groupNum = groupNum + 1
-
-				logging.debug("Group {groupNum} found at {start}-{end}: {group}".format(groupNum=groupNum,
-																				start=match.start(groupNum),
-																				end=match.end(groupNum),
-																				group=match.group(groupNum)))
+			# for groupNum in range(0, len(match.groups())):
+			# 	groupNum = groupNum + 1
+			#
+			# 	logging.debug("Group {groupNum} found at {start}-{end}: {group}".format(groupNum=groupNum,
+			# 																	start=match.start(groupNum),
+			# 																	end=match.end(groupNum),
+			# 																	group=match.group(groupNum)))
 
 	def generate_text(self, prompt: str):
 		start_time = time.time()
@@ -52,6 +53,7 @@ class ModelTextGenerator:
 		reply = None
 		raw_response = None
 		output_list = []
+		attempts = 0
 		while reply is None:
 			samples = self.model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False)
 			sample = samples[0]
@@ -59,13 +61,19 @@ class ModelTextGenerator:
 			if sample is None:
 				continue
 			text = sample.replace(prompt, "\n")
+			logging.debug(f"Generated Text:\n{text}")
 			escaped = ftfy.fix_text(codecs.decode(text, "unicode_escape"))
 			cleaned = escaped.replace(r'\n', "\n")
 			result = self.capture_tag(cleaned)
-			finalized = re.sub(r'(\<\|[\w\/ ]*\|\>)', ' ', result).strip()
 			if result is not None:
+				finalized = re.sub(r'(<\|[\w/ ]*\|>)', ' ', result).strip()
 				raw_response = text
 				reply = finalized
+			attempts += 1
+			if attempts > 10:
+				break
+			else:
+				logging.info(f"Attempting Again...{attempts}")
 
 		end_time = time.time()
 		duration = round(end_time - start_time, 1)
@@ -79,7 +87,7 @@ class ModelTextGenerator:
 		text_body_regex = r"<\|sost\|>(.+?)<\|eost\|>"
 		prompt: str = f"<|ososs r/{sub}|><|sot|>"
 		while reply is None:
-			for text in self.model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=True):
+			for text in self.model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False):
 				cleaned_text = text.replace(prompt, "<|sot|>")
 				result = cleaned_text.split("<|eost|>")[0] + "<|eost|>"
 				title = re.findall(title_regex, result)[0]

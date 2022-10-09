@@ -34,10 +34,12 @@ class TaggingHandler:
 
 		parent: RedditBase = comment.parent()
 		parent_author: Redditor = parent.author
-		parent_comment = parent.body
 
 		grand_parent_author = None
+		parent_comment = None
+
 		if isinstance(parent, Comment):
+			parent_comment = parent.body
 			parent: Comment = parent
 
 			grand_parent = parent.parent()

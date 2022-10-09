@@ -7,6 +7,7 @@ from datetime import timezone
 
 from praw import Reddit
 from praw.models import Redditor, Submission, Comment, Subreddit, ListingGenerator
+from praw.models.reddit.base import RedditBase
 
 from shared_code.handlers.tagging_handler import TaggingHandler
 from shared_code.tagging.reddit_data import RedditData
@@ -28,6 +29,13 @@ class StreamPolling(object):
 		triggered: int = len([item for item in self.tigger_words if body.lower().__contains__(item.lower())])
 		if triggered > 0 and self.me.name == "SportsFanGhost-Bot":
 			logging.info(f"Triggered")
+			return True
+
+		submission: Submission = comment.submission
+
+		submission_author: Redditor = submission.author
+
+		if submission_author.name == self.me.name:
 			return True
 
 		# Hack for now
@@ -64,7 +72,13 @@ class StreamPolling(object):
 						text, raw_result = text_generation.generate_text(prompt)
 						logging.info(
 							f"Sending Reply For Prompt:\n\n{prompt}\n\nWith Generated Sample:\n\n{raw_result}\n\n")
-						comment.reply(body=text)
+						try:
+							comment.reply(body=text)
+						except Exception as e:
+							logging.error(e)
+							submission: RedditBase = comment
+							submission.reply(body=text)
+
 						time.sleep(1)
 					num_comments_seen += 1
 
@@ -109,7 +123,7 @@ class StreamPolling(object):
 				continue
 
 	def poll_for_content_creation(self):
-		logging.info(f"Starting Content Creation Poll For {self.me}")
+		logging.info(f"Starting Submission Process For {self.me} and monitoring {self.subreddit}")
 		interval_between_posts = 60 * 3
 		submission_store = dict()
 
