@@ -1,0 +1,9 @@
+[Foo-Bot-GPT2]
+username=Foo-Bot-GPT2
+password=Password123
+bot_name=Foo-Bot-GPT2
+bot_author=u/Author
+bot_version=1.0.0
+client_id=some_client_id
+client_secret=some_client_secret
+user_agent=script:%(bot_name)s:v%(bot_version)s (by /u/%(bot_author)s)

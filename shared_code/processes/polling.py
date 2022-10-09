@@ -18,7 +18,6 @@ class StreamPolling(object):
 		self.me: Redditor = self.reddit.user.me()
 		self.prompt_handler: TaggingHandler = TaggingHandler(self.reddit)
 		self.reply_threshold = int(os.environ["ReplyThreshold"])
-		self.flair_id_map = os.environ["FlairId"]
 		self.tigger_words: [str] = [item.lower() for item in os.environ["TriggerWords"].split(",")]
 
 	def _should_reply(self, comment: Comment) -> bool:
