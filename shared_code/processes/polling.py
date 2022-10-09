@@ -36,7 +36,7 @@ class StreamPolling(object):
 			return True
 
 		else:
-			logging.debug(f"Reply Value {random_reply_value} is less than {self.reply_threshold}. Skipping...")
+			logging.info(f"Reply Value {random_reply_value} is less than {self.reply_threshold}. Skipping...")
 			return False
 
 	def poll_for_comments(self):

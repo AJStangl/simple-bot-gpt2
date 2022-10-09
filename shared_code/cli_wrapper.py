@@ -34,6 +34,7 @@ def run_bot(bot_name: str, sub_reddit: str, reply_rate: str):
 	# Global setting
 	os.environ["ReplyThreshold"] = reply_rate
 	logging.basicConfig(format=f':: Thead:%(thread)s|%(asctime)s|{bot_name}|{sub_reddit}|:: %(message)s', level=logging.INFO)
+	logging.info(f"Setting Random Reply To {reply_rate}")
 	BotRunner.run_bot(bot_name, sub_reddit)
 
 
