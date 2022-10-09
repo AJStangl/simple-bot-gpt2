@@ -133,23 +133,27 @@ class StreamPolling(object):
 				time_interval = (utc_timestamp - latest_submission.created_utc) // 60
 				if time_interval > interval_between_posts:
 					for sub in submission_store.keys():
-						it_worked = self.create_text_post(sub)
-						if it_worked:
-							logging.info(f"Sent Submission To Subreddit {sub}")
-						else:
-							logging.info(f"Failed to send submission")
-							time.sleep(60)
+						logging.info(f"Sending Out Submission For {self.me} on {sub}")
+						is_attempting = True
+						while is_attempting:
+							it_worked = self.create_text_post(sub)
+							if it_worked:
+								logging.info(f"Sent Submission To Subreddit {sub}")
+								is_attempting = False
+								continue
+							else:
+								logging.info(f"Failed to send submission")
+								continue
 
 	def get_latest_submission(self):
 		return list(self.reddit.redditor(self.me.name).submissions.new(limit=1))
 
 	def create_text_post(self, sub_name: str) -> bool:
-		text_generation = ModelTextGenerator(self.me.name)
-		data = text_generation.generate_text_post(sub_name)
-		title = data.get("title")
-		body = data.get("selftext")
 		try:
-			self.subreddit.submit(**{'title': title, 'selftext': body})
+			text_generation = ModelTextGenerator(self.me.name)
+			data = text_generation.generate_text_post(sub_name)
+			logging.info(f"Sending Out Submission to {sub_name}")
+			self.reddit.subreddit(sub_name).submit(**data)
 			return True
 		except Exception as e:
 			logging.error(e)

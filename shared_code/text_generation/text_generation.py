@@ -84,16 +84,19 @@ class ModelTextGenerator:
 				result = cleaned_text.split("<|eost|>")[0] + "<|eost|>"
 				title = re.findall(title_regex, result)[0]
 				body = re.findall(text_body_regex, result)[0]
+				clean_body = self.clean_string(body)
+				clean_title = self.clean_string(title)
 				result = {
-					"title": self.clean_string(title),
-					"selftext": self.clean_string(body)
+					"title": clean_title,
+					"selftext": clean_body
 				}
 				return result
 
-
-	def clean_string(self, text: str):
-		escaped = ftfy.fix_text(codecs.decode(text, "unicode_escape"))
-		cleaned = escaped.replace(r'\n', "\n")
-		result = self.capture_tag(cleaned)
-		finalized = re.sub(r'(\<\|[\w\/ ]*\|\>)', ' ', result).strip()
-		return finalized
+	def clean_string(self, text):
+		try:
+			escaped = ftfy.fix_text(codecs.decode(text, "unicode_escape"))
+			cleaned = escaped.replace(r'\n', "\n")
+			return cleaned
+		except Exception as e:
+			logging.error(e)
+			return None
