@@ -11,8 +11,14 @@ class Tags(object):
 	link_submission_start_tag: str = 'sols'
 	link_submission_end_tag: str = 'eols'
 
+	own_start_of_link_tag = 'osol'
+	own_end_of_link_tag = 'oeol'
+
 	start_of_link_tag = 'sol'
 	end_of_link_tag = 'eol'
+
+	own_text_submission_start_tag: str = 'ososs'
+	own_text_submission_end_tag: str = 'oeoss'
 
 	text_submission_start_tag: str = 'soss'
 	text_submission_end_tag: str = 'eoss'
@@ -68,8 +74,18 @@ class Tags(object):
 		else:
 			return f"{self._open_tag}{self.text_submission_start_tag} r/{subreddit}{self._close_tag}{self._create_tag(self.title_start_tag)}"
 
-	def tag_submission(self, subreddit: str, is_link_submission: bool, title: str, body: str):
+	def tag_submission(self, subreddit: str, is_link_submission: bool, is_own_submission: bool, title: str, body: str):
 		tag: str = f"{self._open_tag}"
+
+		if is_own_submission and is_link_submission:
+			tag += f"{self.own_start_of_link_tag} r/{subreddit}{self._close_tag}"
+			tag += f"{self._create_tag(self.title_start_tag)}{title}{self._create_tag(self.title_end_tag)}{self._create_tag(self.start_of_link_tag)}{self._create_tag(self.end_of_link_tag)}"
+			return tag
+
+		if is_own_submission and not is_link_submission:
+			tag += f"{self.own_text_submission_start_tag} r/{subreddit}{self._close_tag}"
+			tag += f"{self._create_tag(self.title_start_tag)}{title}{self._create_tag(self.title_end_tag)}{self._create_tag(self.text_start_tag)}{body}{self._create_tag(self.text_end_tag)}"
+			return tag
 
 		# <|foo r/bar|>
 		if is_link_submission:

@@ -93,6 +93,7 @@ class TaggingHandler:
 		# First create some context for discussion
 		tagged_submission = self._tagging.tag_submission(
 			subreddit=reddit_data.subreddit,
+			is_own_submission=reddit_data.is_submission_author(),
 			is_link_submission=reddit_data.is_link(),
 			title=reddit_data.submission_title,
 			body=reddit_data.submission_content
@@ -138,6 +139,7 @@ class TaggingHandler:
 		# Then create some context for discussion
 		tagged_submission = self._tagging.tag_submission(
 			subreddit=reddit_data.subreddit,
+			is_own_submission=reddit_data.is_submission_author(),
 			is_link_submission=reddit_data.is_link(),
 			title=reddit_data.submission_title,
 			body=reddit_data.submission_content
