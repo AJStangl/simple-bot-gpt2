@@ -111,6 +111,15 @@ class StreamPolling(object):
 	def poll_for_content_creation(self):
 		logging.info(f"Starting Content Creation Poll For {self.me}")
 		interval_between_posts = 60 * 3
+		submission_store = dict()
+
+		allowed = os.environ["AllowSubmissions"].split(",")
+		for pair in allowed:
+			name_time = pair.split(":")
+			sub_name = name_time[0]
+			time_interval = int(name_time[1])
+			submission_store[sub_name] = time_interval
+
 		while True:
 			dt = datetime.datetime.now(timezone.utc)
 			utc_time = dt.replace(tzinfo=timezone.utc)
@@ -123,16 +132,16 @@ class StreamPolling(object):
 			for latest_submission in submissions:
 				time_interval = (utc_timestamp - latest_submission.created_utc) // 60
 				if time_interval > interval_between_posts:
-					logging.info(time_interval)
-					it_worked = self.create_text_post(latest_submission.subreddit.display_name)
-					if it_worked:
-						logging.info(f"Sent Submission To Subreddit {latest_submission.subreddit.display_name}")
-					else:
-						logging.info(f"Failed to send submission")
-						time.sleep(60)
+					for sub in submission_store.keys():
+						it_worked = self.create_text_post(sub)
+						if it_worked:
+							logging.info(f"Sent Submission To Subreddit {sub}")
+						else:
+							logging.info(f"Failed to send submission")
+							time.sleep(60)
 
 	def get_latest_submission(self):
-		return list(self.reddit.redditor(self.me.name).submissions.new(limit=5))
+		return list(self.reddit.redditor(self.me.name).submissions.new(limit=1))
 
 	def create_text_post(self, sub_name: str) -> bool:
 		text_generation = ModelTextGenerator(self.me.name)
