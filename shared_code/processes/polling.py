@@ -23,32 +23,6 @@ class StreamPolling(object):
 		self.reply_threshold = int(os.environ["ReplyThreshold"])
 		self.tigger_words: [str] = [item.lower() for item in os.environ["TriggerWords"].split(",")]
 
-	def _should_reply(self, comment: Comment) -> bool:
-		random_reply_value = random.randint(0, 1000)
-		body = comment.body or ""
-		triggered: int = len([item for item in self.tigger_words if body.lower().__contains__(item.lower())])
-		if triggered > 0 and self.me.name == "SportsFanGhost-Bot":
-			logging.info(f"Triggered")
-			return True
-
-		submission: Submission = comment.submission
-
-		submission_author: Redditor = submission.author
-
-		if submission_author.name == self.me.name:
-			return True
-
-		# Hack for now
-		if self.me.name == "SportsFanGhost-Bot":
-			return False
-
-		if random_reply_value >= self.reply_threshold:
-			return True
-
-		else:
-			logging.debug(f"Reply Value {random_reply_value} is less than {self.reply_threshold}. Skipping...")
-			return False
-
 	def poll_for_comments(self):
 		num_comments_seen = 0
 		while True:
@@ -138,7 +112,7 @@ class StreamPolling(object):
 			dt = datetime.datetime.now(timezone.utc)
 			utc_time = dt.replace(tzinfo=timezone.utc)
 			utc_timestamp = utc_time.timestamp()
-			submissions = self.get_latest_submission()
+			submissions = self._get_latest_submission()
 			if len(submissions) == 0:
 				logging.debug(f"No New Submissions Found {self.subreddit.display_name}")
 				time.sleep(60)
@@ -150,7 +124,7 @@ class StreamPolling(object):
 						logging.info(f"Sending Out Submission For {self.me} on {sub}")
 						is_attempting = True
 						while is_attempting:
-							it_worked = self.create_text_post(sub)
+							it_worked = self._create_text_post(sub)
 							if it_worked:
 								logging.info(f"Sent Submission To Subreddit {sub}")
 								is_attempting = False
@@ -159,10 +133,36 @@ class StreamPolling(object):
 								logging.info(f"Failed to send submission")
 								continue
 
-	def get_latest_submission(self):
+	def _should_reply(self, comment: Comment) -> bool:
+		random_reply_value = random.randint(0, 1000)
+		body = comment.body or ""
+		triggered: int = len([item for item in self.tigger_words if body.lower().__contains__(item.lower())])
+		if triggered > 0 and self.me.name == "SportsFanGhost-Bot":
+			logging.info(f"Triggered")
+			return True
+
+		submission: Submission = comment.submission
+
+		submission_author: Redditor = submission.author
+
+		if submission_author.name == self.me.name:
+			return True
+
+		# Hack for now
+		if self.me.name == "SportsFanGhost-Bot":
+			return False
+
+		if random_reply_value >= self.reply_threshold:
+			return True
+
+		else:
+			logging.debug(f"Reply Value {random_reply_value} is less than {self.reply_threshold}. Skipping...")
+			return False
+
+	def _get_latest_submission(self):
 		return list(self.reddit.redditor(self.me.name).submissions.new(limit=1))
 
-	def create_text_post(self, sub_name: str) -> bool:
+	def _create_text_post(self, sub_name: str) -> bool:
 		try:
 			text_generation = ModelTextGenerator(self.me.name)
 			data = text_generation.generate_text_post(sub_name)

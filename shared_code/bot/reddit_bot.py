@@ -17,6 +17,7 @@ class RedditBot:
 		self.comment_polling_thread = threading.Thread(target=self.poll_for_comments, args=(), daemon=True)
 		self.submission_polling_thread = threading.Thread(target=self.poll_for_submissions, args=(), daemon=True)
 		self.create_post_thread = threading.Thread(target=self.poll_for_submission_creation, args=(), daemon=True)
+		self.manager_thread = threading.Thread(target=self.manager, args=(), daemon=True)
 
 	def poll_for_comments(self):
 		StreamPolling(self.reddit, self.subreddit).poll_for_comments()
@@ -27,11 +28,22 @@ class RedditBot:
 	def poll_for_submission_creation(self):
 		StreamPolling(self.reddit, self.subreddit).poll_for_content_creation()
 
+	def manager(self):
+		while True:
+			logging.info("=" * 40)
+			logging.info(f"Thread ReportReporting Status:")
+			logging.info(f"|{self.comment_polling_thread.name}\t|\t{self.comment_polling_thread.is_alive()}\t\t|")
+			logging.info(f"|{self.submission_polling_thread.name}\t|\t{self.submission_polling_thread.is_alive()}\t\t|")
+			logging.info(f"|{self.create_post_thread.name}\t|\t{self.create_post_thread.is_alive()}\t\t|")
+			logging.info(f"|{self.manager_thread.name}\t|\t{self.manager_thread.is_alive()}\t\t|")
+			logging.info("=" * 40 + "\n")
+			time.sleep(120)
 
 	def run(self):
 		self.comment_polling_thread.start()
 		self.submission_polling_thread.start()
 		self.create_post_thread.start()
+		self.manager_thread.start()
 
 
 	@staticmethod
