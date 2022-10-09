@@ -1,4 +1,4 @@
-Thread Conversation Language Modeling Fine-Tuning and Generation On Individuals
+Reddit Build-A-Bot Tool Kit For GPT2 
 ===
 
 Getting Started
