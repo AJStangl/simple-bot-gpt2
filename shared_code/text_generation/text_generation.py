@@ -72,3 +72,28 @@ class ModelTextGenerator:
 
 		logging.info(f'{len(output_list)} sample(s) of text generated in {duration} seconds.')
 		return reply, raw_response
+
+	def generate_text_post(self, sub: str) -> dict:
+		reply = None
+		title_regex = r"<\|sot\|>(.+?)<\|eot\|>"
+		text_body_regex = r"<\|sost\|>(.+?)<\|eost\|>"
+		prompt: str = f"<|ososs r/{sub}|><|sot|>"
+		while reply is None:
+			for text in self.model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=True):
+				cleaned_text = text.replace(prompt, "<|sot|>")
+				result = cleaned_text.split("<|eost|>")[0] + "<|eost|>"
+				title = re.findall(title_regex, result)[0]
+				body = re.findall(text_body_regex, result)[0]
+				result = {
+					"title": self.clean_string(title),
+					"selftext": self.clean_string(body)
+				}
+				return result
+
+
+	def clean_string(self, text: str):
+		escaped = ftfy.fix_text(codecs.decode(text, "unicode_escape"))
+		cleaned = escaped.replace(r'\n', "\n")
+		result = self.capture_tag(cleaned)
+		finalized = re.sub(r'(\<\|[\w\/ ]*\|\>)', ' ', result).strip()
+		return finalized

@@ -20,8 +20,8 @@ class RedditData(object):
 		self.comment_author = comment_author
 		self.grand_parent_author = grand_parent_author
 
-	def is_submission_author(self):
-		return self.submission_author == self.comment_author
+	def is_submission_author(self, author):
+		return self.submission_author == author
 
 
 	def is_link(self):
