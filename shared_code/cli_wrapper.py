@@ -29,10 +29,11 @@ def cli3():
 @cli1.command()
 @click.option("--bot-name", prompt='specify the bot name. Must be present in the praw.ini file', default='')
 @click.option("--sub-reddit", prompt='specify the sub-reddit name(s). Example. CoopAndPabloPlayHouse+THE_Pablop+SubSimGPT2Interactive', default='CoopAndPabloPlayHouse')
-def run_bot(bot_name: str, sub_reddit: str):
+@click.option("--reply-rate", prompt='The base rate at which a bot will randomly reply. N / 1000', default='900')
+def run_bot(bot_name: str, sub_reddit: str, reply_rate: str):
+	# Global setting
+	os.environ["ReplyThreshold"] = reply_rate
 	logging.basicConfig(format=f':: Thead:%(thread)s|%(asctime)s|{bot_name}|{sub_reddit}|:: %(message)s', level=logging.INFO)
-	# if bot_name ==
-	# os.environ["UseTrigger"] = "true"
 	BotRunner.run_bot(bot_name, sub_reddit)
 
 

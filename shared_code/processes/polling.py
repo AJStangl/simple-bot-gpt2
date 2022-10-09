@@ -1,7 +1,6 @@
 import logging
 import os
 import random
-import re
 import time
 
 from praw import Reddit
@@ -18,7 +17,6 @@ class StreamPolling(object):
 		self.subreddit = subreddit
 		self.me: Redditor = self.reddit.user.me()
 		self.prompt_handler: TaggingHandler = TaggingHandler(self.reddit)
-		self.text_generation = ModelTextGenerator(self.me.name)
 		self.reply_threshold = int(os.environ["ReplyThreshold"])
 		self.flair_id_map = os.environ["FlairId"]
 		self.tigger_words: [str] = [item.lower() for item in os.environ["TriggerWords"].split(",")]
@@ -61,7 +59,8 @@ class StreamPolling(object):
 						logging.info(f"Processing Response For Comment: {comment}")
 						reddit_data: RedditData = self.prompt_handler.handle_comment(comment)
 						prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
-						text, raw_result = self.text_generation.generate_text(prompt)
+						text_generation = ModelTextGenerator(self.me.name)
+						text, raw_result = text_generation.generate_text(prompt)
 						logging.info(f"Sending Reply For Prompt:\n\n{prompt}\n\nWith Generated Sample:\n\n{raw_result}\n\n")
 						comment.reply(body=text)
 						time.sleep(1)
@@ -88,7 +87,8 @@ class StreamPolling(object):
 					logging.info(f"Submission {submission} found")
 					reddit_data: RedditData = self.prompt_handler.handle_submission(submission)
 					prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
-					text, raw_result = self.text_generation.generate_text(prompt)
+					text_generation = ModelTextGenerator(self.me.name)
+					text, raw_result = text_generation.generate_text(prompt)
 					logging.info(f"Sending Reply For Prompt:\n\n{prompt}\n\nWith Generated Sample:\n\n{raw_result}\n\n")
 					submission.reply(body=text)
 					time.sleep(1)
