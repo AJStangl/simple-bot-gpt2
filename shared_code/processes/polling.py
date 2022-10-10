@@ -98,7 +98,7 @@ class StreamPolling(object):
 
 	def poll_for_content_creation(self):
 		logging.info(f"Starting Submission Process For {self.me} and monitoring {self.subreddit}")
-		interval_between_posts = 60 * 3
+		interval_between_posts = 60 * 8
 		submission_store = dict()
 
 		allowed = os.environ["AllowSubmissions"].split(",")

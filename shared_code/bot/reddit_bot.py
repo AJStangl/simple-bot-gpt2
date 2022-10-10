@@ -31,7 +31,7 @@ class RedditBot:
 	def manager(self):
 		while True:
 			logging.info("=" * 40)
-			logging.info(f"Thread ReportReporting Status:")
+			logging.info(f"|Thread ReportReporting Status:")
 			logging.info(f"|{self.comment_polling_thread.name}\t|\t{self.comment_polling_thread.is_alive()}\t\t|")
 			logging.info(f"|{self.submission_polling_thread.name}\t|\t{self.submission_polling_thread.is_alive()}\t\t|")
 			logging.info(f"|{self.create_post_thread.name}\t|\t{self.create_post_thread.is_alive()}\t\t|")
@@ -44,7 +44,6 @@ class RedditBot:
 		self.submission_polling_thread.start()
 		self.create_post_thread.start()
 		self.manager_thread.start()
-
 
 	@staticmethod
 	def stop():

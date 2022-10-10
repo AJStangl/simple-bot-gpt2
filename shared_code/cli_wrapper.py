@@ -29,11 +29,10 @@ def cli3():
 @cli1.command()
 @click.option("--bot-name", prompt='specify the bot name. Must be present in the praw.ini file', default='')
 @click.option("--sub-reddit", prompt='specify the sub-reddit name(s). Example. CoopAndPabloPlayHouse+THE_Pablop+SubSimGPT2Interactive', default='CoopAndPabloPlayHouse')
-@click.option("--reply-rate", prompt='The base rate at which a bot will randomly reply. N / 1000', default='9000')
+@click.option("--reply-rate", prompt='The base rate at which a bot will randomly reply. N / 1000', default='900')
 def run_bot(bot_name: str, sub_reddit: str, reply_rate: str):
-	# Global setting
 	os.environ["ReplyThreshold"] = reply_rate
-	logging.basicConfig(format=f':: Thread:%(thread)s|%(asctime)s|{bot_name}|{sub_reddit}|:: %(message)s', level=logging.INFO)
+	logging.basicConfig(format=f'|:: Thread:%(thread)s|%(asctime)s|{bot_name}|{sub_reddit}|::| %(message)s', level=logging.INFO)
 	logging.info(f"Setting Random Reply To {reply_rate}")
 	BotRunner.run_bot(bot_name, sub_reddit)
 
@@ -41,14 +40,14 @@ def run_bot(bot_name: str, sub_reddit: str, reply_rate: str):
 @cli2.command()
 @click.option("--redditor", prompt='The name of the redditor to collect data on', default='generic')
 def collect_data(redditor: str):
-	logging.basicConfig(format=f':: Thread:%(thread)s|%(asctime)s|{redditor}|:: %(message)s', level=logging.INFO)
+	logging.basicConfig(format=f'|:: Thread:%(thread)s|%(asctime)s|{redditor}|::| %(message)s', level=logging.INFO)
 	RedditDataCollection().run(redditor)
 
 
 @cli3.command()
 @click.option("--redditor", prompt='The name of the redditor to collect data on', default='generic')
 def create_training(redditor: str):
-	logging.basicConfig(format=f':: Thread:%(thread)s|%(asctime)s|{redditor}|:: %(message)s', level=logging.INFO)
+	logging.basicConfig(format=f'|:: Thread:%(thread)s|%(asctime)s|{redditor}|::| %(message)s', level=logging.INFO)
 	TrainingDataGenerator().run(redditor)
 
 
