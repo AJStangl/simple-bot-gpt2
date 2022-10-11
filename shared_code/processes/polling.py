@@ -148,6 +148,9 @@ class StreamPolling(object):
 		if submission_author.name == self.me.name:
 			return True
 
+		if self._get_grand_parent(comment) == self.me.name:
+			return random.randint(1, 2) == 2
+
 		# Hack for now
 		if self.me.name == "SportsFanGhost-Bot":
 			return False
@@ -172,4 +175,19 @@ class StreamPolling(object):
 		except Exception as e:
 			logging.error(e)
 			return False
+
+	def _get_grand_parent(self, comment: Comment) -> str:
+
+		try:
+			parent: RedditBase = comment.parent()
+			if isinstance(parent, Comment):
+				grand_parent = parent.parent()
+				grand_parent_author: Redditor = grand_parent.author
+				return grand_parent_author.name
+			if isinstance(parent, Submission):
+				submission_author: Redditor = parent.author
+				return submission_author.name
+		except Exception as e:
+			logging.error(f"Error Trying to Get Grandparent")
+			None
 
