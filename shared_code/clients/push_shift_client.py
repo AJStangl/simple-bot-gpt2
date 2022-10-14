@@ -15,6 +15,8 @@ from shared_code.tagging.reddit_data import RedditData
 load_dotenv()
 logger = logging.getLogger("PushShiftClient")
 
+BODY = "body"
+
 
 class PushShiftClient:
 	def __init__(self):
@@ -39,7 +41,7 @@ class PushShiftClient:
 					return self.get_by_reddit_id(reddit_id, attempts)
 				data = self.__handle_response(response, False)
 				for item in data:
-					if item:
+					if item is not None:
 						children = item.get("data").get("children")
 						if children:
 							for child in children:
@@ -72,6 +74,8 @@ class PushShiftClient:
 			try:
 				result = self.__handle_response(self.__session.get(request_address))[0]
 				return result
+			except IndexError as index_error:
+				return {}
 			except Exception as e:
 				logger.error(f":: Exception in get_comment_by_id for {comment_id}\t{e}")
 				attempts += 1
@@ -79,7 +83,7 @@ class PushShiftClient:
 				time.sleep(1)
 				return self.get_comment_by_id(comment_id, attempts=attempts)
 		else:
-			return None
+			return {}
 
 	def get_submission_by_id(self, submission_id: str, fields=None, attempts: int = 0, max_attempts: int = 10) -> dict:
 		"""
@@ -109,8 +113,10 @@ class PushShiftClient:
 		else:
 			return {}
 
-	def get_author_comments(self, author, fields=None) -> Union[None, dict]:
-		request_address = f"{self.__base_address}/comment/search/?author={author}&sort=desc&sort_type=created_utc"
+	def get_author_comments(self, author, before, fields=None) -> Union[None, dict]:
+		request_address = f"{self.__base_address}/comment/search/?author={author}&sort=desc&sort_type=created_utc&limit=100"
+		if before:
+			request_address += f"&before={before}"
 		if fields:
 			request_address += f"&fields={fields}"
 		try:
@@ -195,7 +201,7 @@ class PushShiftClient:
 			return parent
 		return None
 
-	def handle_comment(self, comment: dict) -> RedditData:
+	def handle_comment(self, comment: dict) -> TrainingDataRow:
 		data_point: RedditData = RedditData()
 
 		# Meta
@@ -233,15 +239,6 @@ class PushShiftClient:
 				else:
 					data_point.submission_content = sub_data.get("url")
 
-		# if submission_id:
-		# 	parent_submission = self.get_submission_by_id(submission_id=submission_id)
-		# 	data_point.submission_author = parent_submission.get("author")
-		# 	data_point.submission_title = parent_submission.get("title")
-		# 	if parent_submission.get('is_self'):
-		# 		data_point.submission_content = parent_submission.get('selftext')
-		# 	if parent_submission.get('url'):
-		# 		data_point.submission_content = parent_submission.get('url')
-
 		# If we have a return from out partitioned parent_id...
 		if parent_id_dict:
 			parent_type = parent_id_dict.get("type")
@@ -273,7 +270,7 @@ class PushShiftClient:
 		row.CommentAuthor = data_point.comment_author
 		row.GrandParentAuthor = data_point.grand_parent_author
 
-		return data_point
+		return row
 
 # def main():
 # 	client: PushShiftClient = PushShiftClient()
