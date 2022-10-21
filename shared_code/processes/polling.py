@@ -4,6 +4,7 @@ import os
 import random
 import time
 from datetime import timezone
+from multiprocessing.queues import Queue
 
 from praw import Reddit
 from praw.models import Redditor, Submission, Comment, Subreddit, ListingGenerator
@@ -15,13 +16,14 @@ from shared_code.text_generation.text_generation import ModelTextGenerator
 
 
 class StreamPolling(object):
-	def __init__(self, reddit: Reddit, subreddit: Subreddit):
+	def __init__(self, reddit: Reddit, subreddit: Subreddit, queue: Queue):
 		self.reddit: Reddit = reddit
 		self.subreddit = subreddit
 		self.me: Redditor = self.reddit.user.me()
 		self.prompt_handler: TaggingHandler = TaggingHandler(self.reddit)
 		self.reply_threshold = int(os.environ["ReplyThreshold"])
 		self.tigger_words: [str] = [item.lower() for item in os.environ["TriggerWords"].split(",")]
+		self.queue = queue
 
 	def poll_for_comments(self):
 		num_comments_seen = 0
@@ -42,16 +44,16 @@ class StreamPolling(object):
 						logging.info(f"Processing Response For Comment: {comment}")
 						reddit_data: RedditData = self.prompt_handler.handle_comment(comment)
 						prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
-						text_generation = ModelTextGenerator(self.me.name)
-						text, raw_result = text_generation.generate_text(prompt)
-						logging.info(
-							f"Sending Reply For Prompt:\n\n{prompt}\n\nWith Generated Sample:\n\n{raw_result}\n\n")
-						try:
-							comment.reply(body=text)
-						except Exception as e:
-							logging.error(e)
-							submission: RedditBase = comment
-							submission.reply(body=text)
+						self.queue.put({'id': comment.id, 'name': self.me.name, 'prompt': prompt, 'type': 'comment'})
+						# text_generation = ModelTextGenerator(self.me.name)
+						# text, raw_result = text_generation.generate_text(prompt)
+						# logging.info(f"Sending Reply For Prompt:\n\n{prompt}\n\nWith Generated Sample:\n\n{raw_result}\n\n")
+						# try:
+						# 	comment.reply(body=text)
+						# except Exception as e:
+						# 	logging.error(e)
+						# 	submission: RedditBase = comment
+						# 	submission.reply(body=text)
 
 						time.sleep(1)
 					num_comments_seen += 1
@@ -77,11 +79,12 @@ class StreamPolling(object):
 					logging.info(f"Submission {submission} found")
 					reddit_data: RedditData = self.prompt_handler.handle_submission(submission)
 					prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
-					text_generation = ModelTextGenerator(self.me.name)
-					text, raw_result = text_generation.generate_text(prompt)
-					logging.info(f"Sending Reply For Prompt:\n\n{prompt}\n\nWith Generated Sample:\n\n{raw_result}\n\n")
-					submission.reply(body=text)
-					time.sleep(1)
+					self.queue.put({'id': submission.id, 'name': self.me.name, 'prompt': prompt, 'type': 'submission'})
+					# text_generation = ModelTextGenerator(self.me.name)
+					# text, raw_result = text_generation.generate_text(prompt)
+					# logging.info(f"Sending Reply For Prompt:\n\n{prompt}\n\nWith Generated Sample:\n\n{raw_result}\n\n")
+					# submission.reply(body=text)
+					# time.sleep(1)
 
 			except Exception as e:
 				logging.error(f"An exception has occurred {e}")
@@ -137,7 +140,7 @@ class StreamPolling(object):
 		random_reply_value = random.randint(0, 1000)
 		body = comment.body or ""
 		triggered: int = len([item for item in self.tigger_words if body.lower().__contains__(item.lower())])
-		if triggered > 0 and self.me.name == "SportsFanGhost-Bot":
+		if triggered > 0:
 			logging.info(f"Triggered")
 			return True
 
@@ -150,10 +153,6 @@ class StreamPolling(object):
 
 		if self._get_grand_parent(comment) == self.me.name:
 			return random.randint(1, 2) == 2
-
-		# Hack for now
-		if self.me.name == "SportsFanGhost-Bot":
-			return False
 
 		if random_reply_value >= self.reply_threshold:
 			return True

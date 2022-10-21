@@ -9,7 +9,7 @@ from simpletransformers.language_generation import LanguageGenerationModel
 
 
 class ModelTextGenerator:
-	def __init__(self, bot_name: str):
+	def __init__(self, bot_name: str, use_cuda=False):
 		self.text_generation_parameters = {
 			'max_length': 1024,
 			'num_return_sequences': 1,
@@ -20,7 +20,7 @@ class ModelTextGenerator:
 			'stop_token': '<|endoftext|>'
 		}
 		self.model_path: str = os.environ[f"{bot_name}"]
-		self.model = LanguageGenerationModel("gpt2", self.model_path, use_cuda=False)
+		self.model = LanguageGenerationModel("gpt2", self.model_path, use_cuda=use_cuda)
 
 	@staticmethod
 	def capture_tag(test_string: str, expected_tags: [str] = ["<|eor|>", "<|eoopr|>", "<|eoocr|>"]):

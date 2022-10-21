@@ -138,10 +138,6 @@ class TaggingHandler:
 		# Grab an instance of the bot replying
 		reply_author = self._reddit_instance.user.me().name
 
-		# Hack for test user override
-		if reply_author == "Test-User-Bot-GPT2":
-			reddit_data.subreddit = "thenetherlands"
-
 		# Then create some context for discussion
 		tagged_submission = self._tagging.tag_submission(
 			subreddit=reddit_data.subreddit,
