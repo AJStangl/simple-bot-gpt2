@@ -5,7 +5,7 @@ import click
 from dotenv import load_dotenv
 
 from shared_code.app.generate_training_data import TrainingDataGenerator
-from shared_code.app.reddit_data_collection import RedditDataCollection
+from shared_code.app.reddit_data_collection import Collector
 from shared_code.app.run_bot import BotRunner
 
 load_dotenv()
@@ -41,7 +41,7 @@ def run_bot(bot_name: str, sub_reddit: str, reply_rate: str):
 @click.option("--redditor", prompt='The name of the redditor to collect data on', default='generic')
 def collect_data(redditor: str):
 	logging.basicConfig(format=f'|:: Thread:%(thread)s|%(asctime)s|{redditor}|::| %(message)s', level=logging.INFO)
-	RedditDataCollection().run(redditor)
+	Collector().get_author_comments(redditor)
 
 
 @cli3.command()
