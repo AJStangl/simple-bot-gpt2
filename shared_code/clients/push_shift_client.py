@@ -123,7 +123,7 @@ class PushShiftClient:
 			return self.__handle_response(self.__session.get(request_address))
 		except Exception as e:
 			logger.error(f":: Exception in get_comment_by_id for {author}\t{e}")
-			return None
+			raise requests.RequestException("Error in get_author_comments")
 
 	def get_author_submissions(self, author, fields=None) -> Union[None, dict]:
 		request_address = f"{self.__base_address}/submission/search/?author={author}&sort=desc&sort_type=created_utc"
@@ -211,6 +211,8 @@ class PushShiftClient:
 		comment_id = comment.get("id")
 		link_id = comment.get("link_id")
 
+		data_point.comment_score = comment.get("score")
+
 		data_point.comment_body = comment.get("body")
 		data_point.comment_author = comment.get("author")
 		data_point.subreddit = comment.get("subreddit")
@@ -269,18 +271,6 @@ class PushShiftClient:
 		row.CommentBody = data_point.comment_body
 		row.CommentAuthor = data_point.comment_author
 		row.GrandParentAuthor = data_point.grand_parent_author
+		row.CommentScore = data_point.comment_score
 
 		return row
-
-# def main():
-# 	client: PushShiftClient = PushShiftClient()
-# 	data = client.get_author_comments("ReallyRickAstley")
-# 	i = 0
-# 	for comment in data:
-# 		result = client.handle_comment(comment)
-# 		print(result.__dict__)
-# 		i += 1
-#
-#
-# if __name__ == '__main__':
-# 	main()

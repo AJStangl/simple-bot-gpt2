@@ -42,9 +42,9 @@ class TrainingDataGenerator:
 		tagged_data = self._tagging_handler.create_training_from_data(data)
 		return tagged_data
 
-	def run(self, redditor: str, out_file: str = "training.csv"):
-		query: Query = self._session.query(TrainingDataRow).where(TrainingDataRow.CommentAuthor == redditor)
+	def run(self, redditor: [str], out_file: str = "training.csv"):
+		query: Query = self._session.query(TrainingDataRow).where(TrainingDataRow.CommentAuthor.in_(redditor))
 		df = pandas.read_sql(query.statement, query.session.bind)
 		training = df.apply(self.generate_training_data, axis=1)
 		df["TrainingString"] = df.apply(self.generate_training_data, axis=1)
-		df.to_csv(f"{redditor}-{out_file}")
+		df.to_csv(f"{','.join(redditor)}-{out_file}")

@@ -48,7 +48,7 @@ def collect_data(redditor: str):
 @click.option("--redditor", prompt='The name of the redditor to collect data on', default='generic')
 def create_training(redditor: str):
 	logging.basicConfig(format=f'|:: Thread:%(thread)s|%(asctime)s|{redditor}|::| %(message)s', level=logging.INFO)
-	TrainingDataGenerator().run(redditor)
+	TrainingDataGenerator().run(redditor.split(","))
 
 
 cli = click.CommandCollection(sources=[cli1, cli2, cli3])

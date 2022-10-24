@@ -19,6 +19,7 @@ load_dotenv()
 
 logger = logging.getLogger("training")
 
+
 class Collector:
 	client: PushShiftClient = PushShiftClient()
 	context: Context = Context()
@@ -30,7 +31,12 @@ class Collector:
 		before = None
 		i = 0
 		while True:
-			comments: dict = self.client.get_author_comments(author_name, before=before)
+			try:
+				comments: dict = self.client.get_author_comments(author_name, before=before)
+			except requests.RequestException as e:
+				logger.error(e)
+				time.sleep(10)
+				continue
 			if not comments:
 				break
 			all_comment_ids: [str] = [comment.get('id') for comment in comments]

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Text
+from sqlalchemy import Column, Text, Integer
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -19,3 +19,4 @@ class TrainingDataRow(Base):
 	CommentBody = Column(Text)
 	CommentAuthor = Column(Text)
 	TrainingString = Column(Text)
+	CommentScore = Column(Integer)

@@ -8,7 +8,8 @@ class RedditData(object):
 				 parent_comment=None,
 				 comment_body=None,
 				 comment_author=None,
-				 grand_parent_author=None):
+				 grand_parent_author=None,
+				 comment_score=None):
 
 		self.subreddit = subreddit
 		self.submission_title = submission_title
@@ -19,6 +20,7 @@ class RedditData(object):
 		self.comment_body = comment_body
 		self.comment_author = comment_author
 		self.grand_parent_author = grand_parent_author
+		self.comment_score = comment_score
 
 	def is_submission_author(self, author):
 		return self.submission_author == author
