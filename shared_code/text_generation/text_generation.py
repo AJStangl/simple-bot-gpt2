@@ -5,6 +5,7 @@ import re
 import time
 
 import ftfy
+from detoxify import Detoxify
 from simpletransformers.language_generation import LanguageGenerationModel
 
 
@@ -21,6 +22,7 @@ class ModelTextGenerator:
 		}
 		self.model_path: str = os.environ[f"{bot_name}"]
 		self.model = LanguageGenerationModel("gpt2", self.model_path, use_cuda=use_cuda)
+		self.detoxify = Detoxify('unbiased-small', device=torch.device('cuda' if use_cuda else 'cpu'))
 
 	@staticmethod
 	def capture_tag(test_string: str, expected_tags: [str] = ["<|eor|>", "<|eoopr|>", "<|eoocr|>"]):
@@ -68,7 +70,8 @@ class ModelTextGenerator:
 			if result is not None:
 				finalized = re.sub(r'(<\|[\w/ ]*\|>)', ' ', result).strip()
 				raw_response = text
-				reply = finalized
+				if self.ensure_non_toxic(finalized):
+					reply = finalized
 			attempts += 1
 			if attempts > 10:
 				break
@@ -108,3 +111,29 @@ class ModelTextGenerator:
 		except Exception as e:
 			logging.error(e)
 			return None
+
+	def ensure_non_toxic(self, input_text: str) -> bool:
+		"""
+		Ensure that the generated text is not toxic
+		:param input_text:
+		:return: True if non-toxix, False if toxic
+		"""
+		threshold_map = {
+			'toxicity': 0.80,
+			'severe_toxicity':  0.80,
+			'obscene': 0.80,
+			'identity_attack': 0.80,
+			'insult':  0.80,
+			'threat': 0.80,
+			'sexual_explicit': 1.0
+		}
+
+		results = self._detoxify.predict(input_text)
+
+		for key in threshold_map:
+			config_key = f"{key}_threshold"
+			if results[key] > threshold_map[key]:
+				logging.info(f"Detoxify: {key} score of {results[key]} is above threshold of {threshold_map[key]}")
+				return False
+			else:
+				return True

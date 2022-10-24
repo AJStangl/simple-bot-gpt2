@@ -45,15 +45,6 @@ class StreamPolling(object):
 						reddit_data: RedditData = self.prompt_handler.handle_comment(comment)
 						prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
 						self.queue.put({'id': comment.id, 'name': self.me.name, 'prompt': prompt, 'type': 'comment'})
-						# text_generation = ModelTextGenerator(self.me.name)
-						# text, raw_result = text_generation.generate_text(prompt)
-						# logging.info(f"Sending Reply For Prompt:\n\n{prompt}\n\nWith Generated Sample:\n\n{raw_result}\n\n")
-						# try:
-						# 	comment.reply(body=text)
-						# except Exception as e:
-						# 	logging.error(e)
-						# 	submission: RedditBase = comment
-						# 	submission.reply(body=text)
 
 						time.sleep(1)
 					num_comments_seen += 1
@@ -80,11 +71,6 @@ class StreamPolling(object):
 					reddit_data: RedditData = self.prompt_handler.handle_submission(submission)
 					prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
 					self.queue.put({'id': submission.id, 'name': self.me.name, 'prompt': prompt, 'type': 'submission'})
-					# text_generation = ModelTextGenerator(self.me.name)
-					# text, raw_result = text_generation.generate_text(prompt)
-					# logging.info(f"Sending Reply For Prompt:\n\n{prompt}\n\nWith Generated Sample:\n\n{raw_result}\n\n")
-					# submission.reply(body=text)
-					# time.sleep(1)
 
 			except Exception as e:
 				logging.error(f"An exception has occurred {e}")
@@ -137,7 +123,7 @@ class StreamPolling(object):
 								continue
 
 	def _should_reply(self, comment: Comment) -> bool:
-		random_reply_value = random.randint(0, 1000)
+		random_reply_value = random.randint(0, self.reply_threshold)
 		body = comment.body or ""
 		triggered: int = len([item for item in self.tigger_words if body.lower().__contains__(item.lower())])
 		if triggered > 0:
@@ -154,11 +140,11 @@ class StreamPolling(object):
 		if self._get_grand_parent(comment) == self.me.name:
 			return random.randint(1, 2) == 2
 
-		if random_reply_value >= self.reply_threshold:
+		if random_reply_value == random.randint(0, self.reply_threshold):
 			return True
 
 		else:
-			logging.debug(f"Reply Value {random_reply_value} is less than {self.reply_threshold}. Skipping...")
+			logging.debug(f"Reply Value {random_reply_value} is not equal random value {self.reply_threshold}. Skipping...")
 			return False
 
 	def _get_latest_submission(self):
