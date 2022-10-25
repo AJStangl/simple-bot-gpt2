@@ -18,7 +18,7 @@ setup(
 	packages=['shared_code',
 			  'shared_code/app',
 			  'shared_code/bot',
-			  'shared_code/client',
+			  'shared_code/clients',
 			  'shared_code/fine_tuning',
 			  'shared_code/handlers',
 			  'shared_code/processes',
