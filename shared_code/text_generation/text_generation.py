@@ -3,7 +3,7 @@ import logging
 import os
 import re
 import time
-
+import torch
 import ftfy
 from detoxify import Detoxify
 from simpletransformers.language_generation import LanguageGenerationModel
@@ -128,7 +128,7 @@ class ModelTextGenerator:
 			'sexual_explicit': 1.0
 		}
 
-		results = self._detoxify.predict(input_text)
+		results = self.detoxify.predict(input_text)
 
 		for key in threshold_map:
 			config_key = f"{key}_threshold"

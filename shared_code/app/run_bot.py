@@ -8,7 +8,7 @@ class BotRunner:
 
 	@staticmethod
 	def run_bot(bot_name: str, sub_reddit: str):
-		logging.basicConfig(format=f':: Thead:%(thread)s|%(asctime)s|{bot_name}|%(message)s', level=logging.INFO)
+		logging.basicConfig(format=f':: Thead:%(thread)s|%(asctime)s|{bot_name}|%(message)s', level=logging.DEBUG)
 		bot = RedditBot(bot_name, sub_reddit)
 		bot.run()
 		try:
