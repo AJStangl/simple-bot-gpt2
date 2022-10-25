@@ -48,7 +48,7 @@ def generate_training_data(x) -> str:
 
 
 if __name__ == '__main__':
-	query: Query = session.query(TrainingDataRow).where(TrainingDataRow.CommentAuthor == "Yuli-Ban")
+	query: Query = session.query(TrainingDataRow).where(TrainingDataRow.CommentAuthor == "Spez")
 	df = pandas.read_sql(query.statement, query.session.bind)
 	training = df.apply(generate_training_data, axis=1)
 	df["TrainingString"] = df.apply(generate_training_data, axis=1)
