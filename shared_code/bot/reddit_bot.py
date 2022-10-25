@@ -5,6 +5,7 @@ import threading
 import time
 
 import praw
+import torch
 from praw import Reddit
 from praw.models import Subreddit
 from praw.reddit import Comment, Submission
@@ -35,12 +36,12 @@ class RedditBot:
 		thing_id = q.get("id")
 		thing_type = q.get("type")
 		if thing_type == "comment":
-			text, raw_text = ModelTextGenerator(name, True).generate_text(prompt)
+			text, raw_text = ModelTextGenerator(name, torch.cuda.is_available()).generate_text(prompt)
 			comment: Comment = praw.Reddit(site_name=name).comment(id=thing_id)
 			comment.reply(body=text)
 			print(f":: Replied To Comment")
 		if thing_type == "submission":
-			text, raw_text = ModelTextGenerator(name, True).generate_text(prompt)
+			text, raw_text = ModelTextGenerator(name, torch.cuda.is_available()).generate_text(prompt)
 			submission: Submission = praw.Reddit(site_name=name).submission(id=thing_id)
 			submission.reply(body=text)
 			print(f":: Replied To Submission")
