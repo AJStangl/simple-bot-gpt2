@@ -16,13 +16,14 @@ setup(
 	include_package_data=True,
 	url="https://example.com",
 	packages=['shared_code',
+			  'shared_code/app',
 			  'shared_code/bot',
+			  'shared_code/client',
 			  'shared_code/fine_tuning',
 			  'shared_code/handlers',
 			  'shared_code/processes',
-			  'shared_code/reddit',
-			  'shared_code/tagging',
-			  'shared_code/text_generation'],
+			  'shared_code/text_generation'
+			  ],
 	long_description=read('README.md'),
 	classifiers=[
 		"Topic :: Utilities",
