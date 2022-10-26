@@ -26,18 +26,19 @@ class StreamPolling(object):
 		self.queue = queue
 
 	def poll_for_comments(self):
-		num_comments_seen = 0
+		logging.info(f"Starting Poll For {self.me} and monitoring {self.subreddit} Comments")
 		while True:
 			try:
-				logging.info(f"Starting Poll For {self.me} and monitoring {self.subreddit} Comments")
 				for comment in self.subreddit.stream.comments(pause_after=0, skip_existing=True):
 					comment: Comment = comment
 					if comment is None:
 						logging.debug("No New Comments, continuing...")
+						time.sleep(5)
 						continue
 
 					logging.debug(f"Comment {comment} found")
 					if comment.author.name == self.me.name:
+						time.sleep(5)
 						continue
 
 					if self._should_reply(comment):
@@ -45,44 +46,34 @@ class StreamPolling(object):
 						reddit_data: RedditData = self.prompt_handler.handle_comment(comment)
 						prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
 						self.queue.put({'id': comment.id, 'name': self.me.name, 'prompt': prompt, 'type': 'comment'})
-
-						time.sleep(1)
-					num_comments_seen += 1
+						time.sleep(5)
 
 			except Exception as e:
 				logging.error(f"An exception has occurred {e}")
+				time.sleep(5)
 				continue
 
 	def poll_for_submissions(self):
+		logging.info(f"Starting Poll For {self.me} and monitoring {self.subreddit} Submissions")
 		while True:
 			try:
-				logging.info(f"Starting Poll For {self.me} and monitoring {self.subreddit} Submissions")
 				for submission in self.subreddit.stream.submissions(pause_after=0, skip_existing=True):
-					# Hack for now
-					if self.me.name == "SportsFanGhost-Bot":
-						logging.debug(f"Barry Cant Talk Right Now...")
-						continue
 					submission: Submission = submission
 					if submission is None:
 						logging.debug("No New Submissions, continuing...")
+						time.sleep(5)
 						continue
 
 					logging.info(f"Submission {submission} found")
 					reddit_data: RedditData = self.prompt_handler.handle_submission(submission)
 					prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
 					self.queue.put({'id': submission.id, 'name': self.me.name, 'prompt': prompt, 'type': 'submission'})
+					time.sleep(5)
+					continue
 
 			except Exception as e:
 				logging.error(f"An exception has occurred {e}")
-				continue
-
-	def poll_for_mentions(self):
-		logging.info(f"Starting Self Mention Poll For {self.me}")
-		while True:
-			try:
-				time.sleep(120)
-				continue
-			except:
+				time.sleep(5)
 				continue
 
 	def poll_for_content_creation(self):
@@ -124,6 +115,7 @@ class StreamPolling(object):
 
 	def _should_reply(self, comment: Comment) -> bool:
 		random_reply_value = random.randint(0, self.reply_threshold)
+		logging.info(f"Random Reply Value: {random_reply_value}")
 		body = comment.body or ""
 		triggered: int = len([item for item in self.tigger_words if body.lower().__contains__(item.lower())])
 		if triggered > 0:
@@ -140,11 +132,12 @@ class StreamPolling(object):
 		if self._get_grand_parent(comment) == self.me.name:
 			return random.randint(1, 2) == 2
 
-		if random_reply_value == random.randint(0, self.reply_threshold):
+		if random_reply_value == int(random.randint(0, self.reply_threshold)):
 			return True
 
 		else:
-			logging.debug(f"Reply Value {random_reply_value} is not equal random value {self.reply_threshold}. Skipping...")
+			logging.debug(
+				f"Reply Value {random_reply_value} is not equal random value {self.reply_threshold}. Skipping...")
 			return False
 
 	def _get_latest_submission(self):
@@ -161,8 +154,8 @@ class StreamPolling(object):
 			logging.error(e)
 			return False
 
-	def _get_grand_parent(self, comment: Comment) -> str:
-
+	@staticmethod
+	def _get_grand_parent(comment: Comment) -> str:
 		try:
 			parent: RedditBase = comment.parent()
 			if isinstance(parent, Comment):
@@ -173,6 +166,5 @@ class StreamPolling(object):
 				submission_author: Redditor = parent.author
 				return submission_author.name
 		except Exception as e:
-			logging.error(f"Error Trying to Get Grandparent")
-			None
-
+			logging.error(f"Error Trying to Get Grandparent: {e}")
+			return "Exception"

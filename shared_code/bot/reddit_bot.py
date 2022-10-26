@@ -23,9 +23,9 @@ class RedditBot:
 		# Threads
 		self.comment_polling_thread = threading.Thread(target=self.poll_for_comments, args=(), daemon=True, name="Thread-GC")
 		self.submission_polling_thread = threading.Thread(target=self.poll_for_submissions, args=(), daemon=True, name="Thread-GS")
-		self.create_post_thread = threading.Thread(target=self.poll_for_submission_creation, args=(), daemon=True, name="Thread-PS")
+		# self.create_post_thread = threading.Thread(target=self.poll_for_submission_creation, args=(), daemon=True, name="Thread-PS")
 		self.queue_thread = threading.Thread(target=self.poll_for_queue, args=(),  daemon=True, name="Thread-RQ")
-		self.manager_thread = threading.Thread(target=self.manager, args=(), daemon=True, name="Thread-MM")
+		# self.manager_thread = threading.Thread(target=self.manager, args=(), daemon=True, name="Thread-MM")
 		self.queue = Queue()
 
 	@staticmethod
@@ -57,16 +57,20 @@ class RedditBot:
 				proc.start()
 				proc.join()
 
-			time.sleep(10)
+			time.sleep(3)
+			continue
 
 	def poll_for_comments(self):
-		StreamPolling(self.reddit, self.subreddit, self.queue).poll_for_comments()
+		StreamPolling(self.reddit, self.subreddit, self.queue)\
+			.poll_for_comments()
 
 	def poll_for_submissions(self):
-		StreamPolling(self.reddit, self.subreddit, self.queue).poll_for_submissions()
+		StreamPolling(self.reddit, self.subreddit, self.queue)\
+			.poll_for_submissions()
 
 	def poll_for_submission_creation(self):
-		StreamPolling(self.reddit, self.subreddit, self.queue).poll_for_content_creation()
+		StreamPolling(self.reddit, self.subreddit, self.queue)\
+			.poll_for_content_creation()
 
 	def manager(self):
 		while True:
@@ -83,9 +87,9 @@ class RedditBot:
 	def run(self):
 		self.comment_polling_thread.start()
 		self.submission_polling_thread.start()
-		self.create_post_thread.start()
 		self.queue_thread.start()
-		self.manager_thread.start()
+		# self.create_post_thread.start()
+		# self.manager_thread.start()
 
 	def stop(self):
 		sys.exit(0)
