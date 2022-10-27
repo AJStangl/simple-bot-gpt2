@@ -115,7 +115,7 @@ class StreamPolling(object):
 
 	def _should_reply(self, comment: Comment) -> bool:
 		random_reply_value = random.randint(0, self.reply_threshold)
-		logging.info(f"Random Reply Value: {random_reply_value}")
+		random_expected_valued = random.randint(0, self.reply_threshold)
 		body = comment.body or ""
 		triggered: int = len([item for item in self.tigger_words if body.lower().__contains__(item.lower())])
 		if triggered > 0:
@@ -132,12 +132,12 @@ class StreamPolling(object):
 		if self._get_grand_parent(comment) == self.me.name:
 			return random.randint(1, 2) == 2
 
-		if random_reply_value == int(random.randint(0, self.reply_threshold)):
+		if random_reply_value == random_expected_valued:
+			logging.info(f"Random Reply Value: {random_reply_value} and Expected Value: {random_expected_valued}")
 			return True
 
 		else:
-			logging.debug(
-				f"Reply Value {random_reply_value} is not equal random value {self.reply_threshold}. Skipping...")
+			logging.debug(f"Reply Value {random_reply_value} is not equal random value {self.reply_threshold}. Skipping...")
 			return False
 
 	def _get_latest_submission(self):

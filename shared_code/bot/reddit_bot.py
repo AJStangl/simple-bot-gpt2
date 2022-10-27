@@ -35,30 +35,34 @@ class RedditBot:
 		prompt = q.get("prompt")
 		thing_id = q.get("id")
 		thing_type = q.get("type")
+		generator = ModelTextGenerator(name, torch.cuda.is_available())
+		instance = praw.Reddit(site_name=name)
 		if thing_type == "comment":
-			text, raw_text = ModelTextGenerator(name, torch.cuda.is_available()).generate_text(prompt)
-			comment: Comment = praw.Reddit(site_name=name).comment(id=thing_id)
+			text, raw_text = generator.generate_text(prompt)
+			comment: Comment = instance.comment(id=thing_id)
 			comment.reply(body=text)
 			print(f":: Replied To Comment")
 		if thing_type == "submission":
-			text, raw_text = ModelTextGenerator(name, torch.cuda.is_available()).generate_text(prompt)
-			submission: Submission = praw.Reddit(site_name=name).submission(id=thing_id)
+			text, raw_text = generator.generate_text(prompt)
+			submission: Submission = instance.submission(id=thing_id)
 			submission.reply(body=text)
 			print(f":: Replied To Submission")
-		return
+
+		print(f":: Finished Language Generation Process...Cleaning up")
+		del generator, instance
+		return None
 
 	def poll_for_queue(self):
 		while True:
-			logging.info(f"Number Of Items In Queue: {self.queue.qsize()}")
-			queue_item = self.queue.get()
-			if queue_item:
-				logging.info(f"Object Received From Queue {queue_item}")
-				proc = multiprocessing.Process(target=self.do_thing, args=(queue_item,))
-				proc.start()
-				proc.join()
-
-			time.sleep(3)
-			continue
+			while self.queue.qsize() > 0:
+				logging.info(f"Number Of Items In Queue: {self.queue.qsize()}")
+				logging.info(f":: Processing Queue Item")
+				q = self.queue.get()
+				p = Process(target=self.do_thing, args=(q,))
+				p.start()
+				p.join()
+				logging.info(f":: Finished Processing Queue Item")
+				continue
 
 	def poll_for_comments(self):
 		StreamPolling(self.reddit, self.subreddit, self.queue)\
