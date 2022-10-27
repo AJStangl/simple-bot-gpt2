@@ -57,7 +57,7 @@ class RedditBot:
 			while self.queue.qsize() > 0:
 				logging.info(f"Number Of Items In Queue: {self.queue.qsize()}")
 				logging.info(f":: Processing Queue Item")
-				q = self.queue.get()
+				q = self.queue.get(block=True)
 				p = Process(target=self.do_thing, args=(q,))
 				p.start()
 				p.join()

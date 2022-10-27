@@ -45,7 +45,9 @@ class StreamPolling(object):
 						logging.info(f"Processing Response For Comment: {comment}")
 						reddit_data: RedditData = self.prompt_handler.handle_comment(comment)
 						prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
-						self.queue.put({'id': comment.id, 'name': self.me.name, 'prompt': prompt, 'type': 'comment'})
+						q = {'id': comment.id, 'name': self.me.name, 'prompt': prompt, 'type': 'comment'}
+						# self.queue.put()
+						self.do_thing(q)
 						time.sleep(5)
 
 			except Exception as e:
@@ -67,7 +69,9 @@ class StreamPolling(object):
 					logging.info(f"Submission {submission} found")
 					reddit_data: RedditData = self.prompt_handler.handle_submission(submission)
 					prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
-					self.queue.put({'id': submission.id, 'name': self.me.name, 'prompt': prompt, 'type': 'submission'})
+					q = {'id': submission.id, 'name': self.me.name, 'prompt': prompt, 'type': 'submission'}
+					# self.queue.put()
+					self.do_thing(q)
 					time.sleep(5)
 					continue
 
@@ -168,3 +172,29 @@ class StreamPolling(object):
 		except Exception as e:
 			logging.error(f"Error Trying to Get Grandparent: {e}")
 			return "Exception"
+
+	@staticmethod
+	def do_thing(q):
+		import torch
+		import praw
+		print(f":: Starting New Process Language Generation Process")
+		name = q.get("name")
+		prompt = q.get("prompt")
+		thing_id = q.get("id")
+		thing_type = q.get("type")
+		generator = ModelTextGenerator(name, torch.cuda.is_available())
+		instance = praw.Reddit(site_name=name)
+		if thing_type == "comment":
+			text, raw_text = generator.generate_text(prompt)
+			comment: Comment = instance.comment(id=thing_id)
+			comment.reply(body=text)
+			print(f":: Replied To Comment")
+		if thing_type == "submission":
+			text, raw_text = generator.generate_text(prompt)
+			submission: Submission = instance.submission(id=thing_id)
+			submission.reply(body=text)
+			print(f":: Replied To Submission")
+
+		print(f":: Finished Language Generation Process...Cleaning up")
+		del generator, instance
+		return None
