@@ -46,8 +46,8 @@ class StreamPolling(object):
 						reddit_data: RedditData = self.prompt_handler.handle_comment(comment)
 						prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
 						q = {'id': comment.id, 'name': self.me.name, 'prompt': prompt, 'type': 'comment'}
-						# self.queue.put()
-						self.do_thing(q)
+						self.queue.put(q)
+						# self.do_thing(q)
 						time.sleep(5)
 
 			except Exception as e:
@@ -70,8 +70,8 @@ class StreamPolling(object):
 					reddit_data: RedditData = self.prompt_handler.handle_submission(submission)
 					prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
 					q = {'id': submission.id, 'name': self.me.name, 'prompt': prompt, 'type': 'submission'}
-					# self.queue.put()
-					self.do_thing(q)
+					self.queue.put(q)
+					# self.do_thing(q)
 					time.sleep(5)
 					continue
 
