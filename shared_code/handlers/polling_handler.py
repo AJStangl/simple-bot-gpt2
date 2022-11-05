@@ -17,6 +17,7 @@ from shared_code.text_generation.text.text_generation import ModelTextGenerator
 
 class StreamPolling(object):
 	def __init__(self, reddit: Reddit, subreddit: Subreddit, queue: Queue):
+		self.MAX_SLEEP_TIME = 60
 		self.reddit: Reddit = reddit
 		self.subreddit = subreddit
 		self.me: Redditor = self.reddit.user.me()
@@ -38,7 +39,7 @@ class StreamPolling(object):
 
 					logging.debug(f"Comment {comment} found")
 					if comment.author.name == self.me.name:
-						time.sleep(10)
+						time.sleep(self.MAX_SLEEP_TIME)
 						continue
 
 					if self._should_reply(comment):
@@ -48,14 +49,14 @@ class StreamPolling(object):
 						q = {'id': comment.id, 'name': self.me.name, 'prompt': prompt, 'type': 'comment'}
 						self.queue.put(q)
 						# self.do_thing(q)
-						time.sleep(10)
+						time.sleep(self.MAX_SLEEP_TIME)
 
-				time.sleep(10)
+				time.sleep(self.MAX_SLEEP_TIME)
 				continue
 
 			except Exception as e:
 				logging.error(f"An exception has occurred {e}")
-				time.sleep(10)
+				time.sleep(self.MAX_SLEEP_TIME)
 				continue
 
 	def poll_for_submissions(self):
@@ -66,7 +67,7 @@ class StreamPolling(object):
 					submission: Submission = submission
 					if submission is None:
 						logging.debug("No New Submissions, continuing...")
-						time.sleep(5)
+						time.sleep(self.MAX_SLEEP_TIME)
 						continue
 
 					logging.info(f"Submission {submission} found")
@@ -75,15 +76,15 @@ class StreamPolling(object):
 					q = {'id': submission.id, 'name': self.me.name, 'prompt': prompt, 'type': 'submission'}
 					self.queue.put(q)
 					# self.do_thing(q)
-					time.sleep(5)
+					time.sleep(self.MAX_SLEEP_TIME)
 					continue
 
-				time.sleep(10)
+				time.sleep(self.MAX_SLEEP_TIME)
 				continue
 
 			except Exception as e:
 				logging.error(f"An exception has occurred {e}")
-				time.sleep(10)
+				time.sleep(self.MAX_SLEEP_TIME)
 				continue
 
 	# noinspection DuplicatedCode
@@ -106,7 +107,7 @@ class StreamPolling(object):
 			submissions = self._get_latest_submission()
 			if len(submissions) == 0:
 				logging.debug(f"No New Submissions Found {self.subreddit.display_name}")
-				time.sleep(60)
+				time.sleep(self.MAX_SLEEP_TIME)
 				continue
 			for latest_submission in submissions:
 				time_interval = (utc_timestamp - latest_submission.created_utc) // 60
@@ -124,7 +125,7 @@ class StreamPolling(object):
 								logging.info(f"Failed to send submission")
 								continue
 
-			time.sleep(60)
+			time.sleep(self.MAX_SLEEP_TIME)
 			continue
 
 	def _should_reply(self, comment: Comment) -> bool:
