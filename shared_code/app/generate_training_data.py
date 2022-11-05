@@ -3,9 +3,9 @@ from dotenv import load_dotenv
 from sqlalchemy.orm import Session, Query
 
 from shared_code.fine_tuning.persistence.context import Context
-from shared_code.fine_tuning.persistence.training_row import TrainingDataRow
+from shared_code.models.training_row import TrainingDataRow
 from shared_code.handlers.tagging_handler import TaggingHandler
-from shared_code.tagging.reddit_data import RedditData
+from shared_code.models.reddit_data import RedditData
 
 load_dotenv()
 
@@ -45,6 +45,5 @@ class TrainingDataGenerator:
 	def run(self, redditor: [str], out_file: str = "training.csv"):
 		query: Query = self._session.query(TrainingDataRow).where(TrainingDataRow.CommentAuthor.in_(redditor))
 		df = pandas.read_sql(query.statement, query.session.bind)
-		training = df.apply(self.generate_training_data, axis=1)
 		df["TrainingString"] = df.apply(self.generate_training_data, axis=1)
 		df.to_csv(f"{','.join(redditor)}-{out_file}")

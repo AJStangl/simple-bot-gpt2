@@ -1,3 +1,4 @@
+from typing import Optional
 import codecs
 import logging
 import os
@@ -11,6 +12,7 @@ from simpletransformers.language_generation import LanguageGenerationModel
 
 class ModelTextGenerator:
 	def __init__(self, bot_name: str, use_cuda=False):
+		# noinspection SpellCheckingInspection
 		self.text_generation_parameters = {
 			'max_length': 1024,
 			'num_return_sequences': 1,
@@ -25,7 +27,9 @@ class ModelTextGenerator:
 		self.detoxify = Detoxify('unbiased-small', device=torch.device('cuda' if use_cuda else 'cpu'))
 
 	@staticmethod
-	def capture_tag(test_string: str, expected_tags: [str] = ["<|eor|>", "<|eoopr|>", "<|eoocr|>"]):
+	def capture_tag(test_string: str, expected_tags=None):
+		if expected_tags is None:
+			expected_tags = ["<|eor|>", "<|eoopr|>", "<|eoocr|>"]
 		regex = r"\<\|(.*)\|\>"
 
 		matches = re.finditer(regex, test_string, re.MULTILINE)
@@ -40,14 +44,6 @@ class ModelTextGenerator:
 				if match.group() == tag:
 					return_string = test_string.replace(match.group(), "")
 					return return_string
-
-			# for groupNum in range(0, len(match.groups())):
-			# 	groupNum = groupNum + 1
-			#
-			# 	logging.debug("Group {groupNum} found at {start}-{end}: {group}".format(groupNum=groupNum,
-			# 																	start=match.start(groupNum),
-			# 																	end=match.end(groupNum),
-			# 																	group=match.group(groupNum)))
 
 	def generate_text(self, prompt: str):
 		start_time = time.time()
@@ -103,7 +99,8 @@ class ModelTextGenerator:
 				}
 				return result
 
-	def clean_string(self, text):
+	@staticmethod
+	def clean_string(text) -> Optional[str]:
 		try:
 			escaped = ftfy.fix_text(codecs.decode(text, "unicode_escape"))
 			cleaned = escaped.replace(r'\n', "\n")
@@ -116,7 +113,7 @@ class ModelTextGenerator:
 		"""
 		Ensure that the generated text is not toxic
 		:param input_text:
-		:return: True if non-toxix, False if toxic
+		:return: True if non-toxic, False if toxic
 		"""
 		threshold_map = {
 			'toxicity': 0.80,
@@ -131,7 +128,6 @@ class ModelTextGenerator:
 		results = self.detoxify.predict(input_text)
 
 		for key in threshold_map:
-			config_key = f"{key}_threshold"
 			if results[key] > threshold_map[key]:
 				logging.info(f"Detoxify: {key} score of {results[key]} is above threshold of {threshold_map[key]}")
 				return False

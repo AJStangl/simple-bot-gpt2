@@ -1,19 +1,16 @@
 import logging
-import multiprocessing
 import sys
 import threading
-import time
+from multiprocessing import Process, Queue
 
 import praw
 import torch
 from praw import Reddit
 from praw.models import Subreddit
 from praw.reddit import Comment, Submission
+from shared_code.handlers.polling_handler import StreamPolling
 
-from shared_code.processes.polling import StreamPolling
-from multiprocessing import Process, Queue
-
-from shared_code.text_generation.text_generation import ModelTextGenerator
+from shared_code.text_generation.text.text_generation import ModelTextGenerator
 
 
 class RedditBot:
@@ -25,7 +22,6 @@ class RedditBot:
 		self.submission_polling_thread = threading.Thread(target=self.poll_for_submissions, args=(), daemon=True, name="Thread-GS")
 		# self.create_post_thread = threading.Thread(target=self.poll_for_submission_creation, args=(), daemon=True, name="Thread-PS")
 		self.queue_thread = threading.Thread(target=self.poll_for_queue, args=(),  daemon=True, name="Thread-RQ")
-		# self.manager_thread = threading.Thread(target=self.manager, args=(), daemon=True, name="Thread-MM")
 		self.queue = Queue()
 
 	@staticmethod
@@ -76,24 +72,12 @@ class RedditBot:
 		StreamPolling(self.reddit, self.subreddit, self.queue)\
 			.poll_for_content_creation()
 
-	def manager(self):
-		while True:
-			logging.info("=" * 40)
-			logging.info(f"|Thread Reporting Status:")
-			logging.info(f"|{self.comment_polling_thread.name}\t|\t{self.comment_polling_thread.is_alive()}\t\t|")
-			logging.info(f"|{self.submission_polling_thread.name}\t|\t{self.submission_polling_thread.is_alive()}\t\t|")
-			logging.info(f"|{self.create_post_thread.name}\t|\t{self.create_post_thread.is_alive()}\t\t|")
-			logging.info(f"|{self.queue_thread.name}\t|\t{self.queue_thread.is_alive()}\t\t|")
-			logging.info(f"|{self.manager_thread.name}\t|\t{self.manager_thread.is_alive()}\t\t|")
-			logging.info("=" * 40 + "\n")
-			time.sleep(120)
-
 	def run(self):
 		self.comment_polling_thread.start()
 		self.submission_polling_thread.start()
 		self.queue_thread.start()
 		# self.create_post_thread.start()
-		# self.manager_thread.start()
 
+	# noinspection PyMethodMayBeStatic
 	def stop(self):
 		sys.exit(0)

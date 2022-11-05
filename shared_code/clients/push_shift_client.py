@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
-from shared_code.fine_tuning.persistence.training_row import TrainingDataRow
-from shared_code.tagging.reddit_data import RedditData
+from shared_code.models.training_row import TrainingDataRow
+from shared_code.models.reddit_data import RedditData
 
 load_dotenv()
 logger = logging.getLogger("PushShiftClient")
@@ -32,6 +32,7 @@ class PushShiftClient:
 		target_data = None
 		if max_attempts > attempts:
 			attempts += 1
+			# noinspection PyBroadException
 			try:
 				response = requests.get(requests_address, headers={"accept": "application/json; charset=UTF-8",
 																   "user-agent": "localhost"})
@@ -54,6 +55,7 @@ class PushShiftClient:
 								time.sleep(1)
 
 			except Exception as e:
+				logger.error(e)
 				time.sleep(1)
 				return target_data
 
@@ -75,6 +77,7 @@ class PushShiftClient:
 				result = self.__handle_response(self.__session.get(request_address))[0]
 				return result
 			except IndexError as index_error:
+				logger.error(f":: IndexError in get_comment_by_id for {comment_id}\t{index_error}")
 				return {}
 			except Exception as e:
 				logger.error(f":: Exception in get_comment_by_id for {comment_id}\t{e}")
@@ -137,7 +140,7 @@ class PushShiftClient:
 
 	def __handle_response(self, response: requests.Response, do_format=True) -> [{}]:
 		"""
-		Handles the general loading of data from a response object to the dict. If it fails None is returned.
+		Handles the general loading of data from a response object to the dict. If it fails None is returned
 		:param response: The API response provided by the invocation of the session
 		:return: A dictionary object of the data
 		"""
@@ -159,14 +162,15 @@ class PushShiftClient:
 	@staticmethod
 	def __try_get_data(data: dict) -> [{}]:
 		"""
-		A try/except wrapper for extracting the data out of the push shift api response.
+		A try/except wrapper for extracting the data out of the push shift api response
 		:param data: An object assumed to have a key 'data'
 		:return: Returns the inner data member.
 		"""
+		# noinspection PyBroadException
 		try:
 			ret_val = data.get("data")
 			return ret_val
-		except:
+		except Exception:
 			return [{}]
 
 	@staticmethod
@@ -175,7 +179,7 @@ class PushShiftClient:
 		Gets the parent id from a single data dict and partitions on the delimiter "_". If this operation fails it will
 		return none. Other-wise it will return {'type': 't_*', 'parent_id': 'abc123'}
 		:param data: A comment push shift object that is assumed to have a key 'parent_id'
-		:return:  A dictionary object {'type': 't_*', 'parent_id': 'abc123'} where t_* is the type of parent (comment or submission). None if the operation fails.
+		:return:  A dictionary object 'type': 't_*', 'parent_id': 'abc123'  where t_* is the type of parent (comment or submission). None if the operation fails.
 		"""
 		parent_id = data.get("parent_id") or ""
 		if isinstance(parent_id, int):

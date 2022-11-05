@@ -4,14 +4,14 @@ from praw import Reddit
 from praw.models import Comment, Redditor, Submission
 from praw.models.reddit.base import RedditBase
 
-from shared_code.tagging.reddit_data import RedditData
-from shared_code.tagging.tags import Tags
+from shared_code.models.reddit_data import RedditData
+from shared_code.tagging.tags import Tagger
 
 
 class TaggingHandler:
 	def __init__(self, reddit: Optional[Reddit]):
 		self._reddit_instance: Optional[Reddit] = reddit
-		self._tagging: Tags = Tags()
+		self._tagging: Tagger = Tagger()
 
 	@staticmethod
 	def handle_comment(comment: Comment) -> RedditData:
@@ -101,7 +101,7 @@ class TaggingHandler:
 			body=reddit_data.submission_content
 		)
 
-		# For training the comment is the reply and the parent is the comment. If there is no parent then it's a reply
+		# For training the comment is the reply and the parent are the comment. If there is no parent then it's a reply
 		# Directly to a link post.
 		parent_comment = None
 		if reddit_data.parent_comment is not None:
@@ -115,7 +115,7 @@ class TaggingHandler:
 				include_author=True  # For a parent comment we will choose to include the author.
 			)
 
-		# The reply comment in the context of training is as defined but we choose to not include the author
+		# The reply comment in the context of training is as defined, but we choose to not include the author
 		reply_comment = self._tagging.tag_comment(
 			submission_author=reddit_data.submission_author,
 			comment_author=reddit_data.comment_author,

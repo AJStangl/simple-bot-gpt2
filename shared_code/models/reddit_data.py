@@ -1,4 +1,7 @@
 class RedditData(object):
+	"""
+	Data model for a reddit comment/submission
+	"""
 	def __init__(self,
 				 subreddit=None,
 				 submission_title=None,
@@ -24,7 +27,6 @@ class RedditData(object):
 
 	def is_submission_author(self, author):
 		return self.submission_author == author
-
 
 	def is_link(self):
 		if self.submission_content is None:

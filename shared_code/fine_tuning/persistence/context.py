@@ -5,7 +5,7 @@ from typing import Union
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from shared_code.fine_tuning.persistence.training_row import Base, TrainingDataRow
+from shared_code.models.training_row import Base, TrainingDataRow
 
 
 class Context:

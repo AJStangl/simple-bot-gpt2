@@ -5,6 +5,7 @@ import os
 def read(fname):
 	return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+
 setup(
 	name="simple-bot-gpt2",
 	version="0.0.1",
@@ -21,9 +22,10 @@ setup(
 			  'shared_code/clients',
 			  'shared_code/fine_tuning',
 			  'shared_code/handlers',
-			  'shared_code/processes',
-			  'shared_code/text_generation'
-			  ],
+			  'shared_code/models',
+			  'shared_code/tagging',
+			  'shared_code/text_generation'],
+
 	long_description=read('README.md'),
 	classifiers=[
 		"Topic :: Utilities",

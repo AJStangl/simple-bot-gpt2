@@ -1,19 +1,13 @@
 import logging
 import time
 
-import praw
-import prawcore
 import requests
 from dotenv import load_dotenv
-from praw import exceptions
-from praw.reddit import Comment, Reddit, Submission, Redditor
-from requests.adapters import HTTPAdapter
 from sqlalchemy.orm import Session
-from urllib3 import Retry
 
 from shared_code.clients.push_shift_client import PushShiftClient
 from shared_code.fine_tuning.persistence.context import Context
-from shared_code.fine_tuning.persistence.training_row import TrainingDataRow
+from shared_code.models.training_row import TrainingDataRow
 
 load_dotenv()
 

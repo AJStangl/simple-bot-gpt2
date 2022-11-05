@@ -7,12 +7,12 @@ from datetime import timezone
 from multiprocessing.queues import Queue
 
 from praw import Reddit
-from praw.models import Redditor, Submission, Comment, Subreddit, ListingGenerator
+from praw.models import Redditor, Submission, Comment, Subreddit
 from praw.models.reddit.base import RedditBase
 
 from shared_code.handlers.tagging_handler import TaggingHandler
-from shared_code.tagging.reddit_data import RedditData
-from shared_code.text_generation.text_generation import ModelTextGenerator
+from shared_code.models.reddit_data import RedditData
+from shared_code.text_generation.text.text_generation import ModelTextGenerator
 
 
 class StreamPolling(object):
@@ -80,8 +80,9 @@ class StreamPolling(object):
 				time.sleep(5)
 				continue
 
+	# noinspection DuplicatedCode
 	def poll_for_content_creation(self):
-		logging.info(f"Starting Submission Process For {self.me} and monitoring {self.subreddit}")
+		logging.info(f"Starting Submission Post Process For {self.me} and monitoring {self.subreddit}")
 		interval_between_posts = 60 * 8
 		submission_store = dict()
 
