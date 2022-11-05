@@ -1,3 +1,4 @@
+import random
 from typing import Optional
 import codecs
 import logging
@@ -22,9 +23,10 @@ class ModelTextGenerator:
 			'repetition_penalty': 1.008,
 			'stop_token': '<|endoftext|>'
 		}
+		self.devices = ['cuda:0', 'cuda:1']
 		self.model_path: str = os.environ[f"{bot_name}"]
 		self.model = LanguageGenerationModel("gpt2", self.model_path, use_cuda=use_cuda)
-		self.detoxify = Detoxify('unbiased-small', device=torch.device('cuda' if use_cuda else 'cpu'))
+		self.detoxify = Detoxify('unbiased-small', device=torch.device(random.choice(self.devices) if use_cuda else 'cpu'))
 
 	@staticmethod
 	def capture_tag(test_string: str, expected_tags=None):

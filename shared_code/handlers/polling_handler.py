@@ -33,12 +33,12 @@ class StreamPolling(object):
 					comment: Comment = comment
 					if comment is None:
 						logging.debug("No New Comments, continuing...")
-						time.sleep(5)
+						time.sleep(10)
 						continue
 
 					logging.debug(f"Comment {comment} found")
 					if comment.author.name == self.me.name:
-						time.sleep(5)
+						time.sleep(10)
 						continue
 
 					if self._should_reply(comment):
@@ -48,11 +48,14 @@ class StreamPolling(object):
 						q = {'id': comment.id, 'name': self.me.name, 'prompt': prompt, 'type': 'comment'}
 						self.queue.put(q)
 						# self.do_thing(q)
-						time.sleep(5)
+						time.sleep(10)
+
+				time.sleep(10)
+				continue
 
 			except Exception as e:
 				logging.error(f"An exception has occurred {e}")
-				time.sleep(5)
+				time.sleep(10)
 				continue
 
 	def poll_for_submissions(self):
@@ -75,9 +78,12 @@ class StreamPolling(object):
 					time.sleep(5)
 					continue
 
+				time.sleep(10)
+				continue
+
 			except Exception as e:
 				logging.error(f"An exception has occurred {e}")
-				time.sleep(5)
+				time.sleep(10)
 				continue
 
 	# noinspection DuplicatedCode
@@ -117,6 +123,9 @@ class StreamPolling(object):
 							else:
 								logging.info(f"Failed to send submission")
 								continue
+
+			time.sleep(60)
+			continue
 
 	def _should_reply(self, comment: Comment) -> bool:
 		random_reply_value = random.randint(0, self.reply_threshold)

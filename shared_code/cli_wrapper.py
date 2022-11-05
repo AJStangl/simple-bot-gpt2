@@ -25,6 +25,11 @@ def cli2():
 def cli3():
 	pass
 
+@click.group()
+def cli4():
+	pass
+
+
 
 @cli1.command()
 @click.option("--bot-name", prompt='specify the bot name. Must be present in the praw.ini file', default='')
@@ -50,8 +55,19 @@ def create_training(redditor: str):
 	logging.basicConfig(format=f'|:: Thread:%(thread)s|%(asctime)s|{redditor}|::| %(message)s', level=logging.INFO)
 	TrainingDataGenerator().run(redditor.split(","))
 
+@cli4.command()
+@click.option("--bot-names", prompt='specify the bot name. Must be present in the praw.ini file', default='')
+@click.option("--sub-reddit", prompt='specify the sub-reddit name(s). Example. CoopAndPabloPlayHouse+THE_Pablop+SubSimGPT2Interactive', default='CoopAndPabloPlayHouse')
+@click.option("--reply-rate", prompt='The base rate at which a bot will randomly reply. N / 1000', default='900')
+def run_multi_bot(bot_names: str, sub_reddit: str, reply_rate: str):
+	os.environ["ReplyThreshold"] = reply_rate
+	logging.basicConfig(format=f'|:: Thread:%(thread)s|%(asctime)s|{bot_names}|{sub_reddit}|::| %(message)s',
+						level=logging.INFO)
+	logging.info(f"Setting Random Reply To {reply_rate}")
+	BotRunner.run_multi_bot(bot_names, sub_reddit)
 
-cli = click.CommandCollection(sources=[cli1, cli2, cli3])
+
+cli = click.CommandCollection(sources=[cli1, cli2, cli3, cli4])
 
 if __name__ == '__main__':
 	cli()

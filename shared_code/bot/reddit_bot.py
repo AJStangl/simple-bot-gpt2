@@ -20,7 +20,7 @@ class RedditBot:
 		# Threads
 		self.comment_polling_thread = threading.Thread(target=self.poll_for_comments, args=(), daemon=True, name="Thread-GC")
 		self.submission_polling_thread = threading.Thread(target=self.poll_for_submissions, args=(), daemon=True, name="Thread-GS")
-		# self.create_post_thread = threading.Thread(target=self.poll_for_submission_creation, args=(), daemon=True, name="Thread-PS")
+		self.create_post_thread = threading.Thread(target=self.poll_for_submission_creation, args=(), daemon=True, name="Thread-PS")
 		self.queue_thread = threading.Thread(target=self.poll_for_queue, args=(),  daemon=True, name="Thread-RQ")
 		self.queue = Queue()
 
@@ -76,7 +76,7 @@ class RedditBot:
 		self.comment_polling_thread.start()
 		self.submission_polling_thread.start()
 		self.queue_thread.start()
-		# self.create_post_thread.start()
+		self.create_post_thread.start()
 
 	# noinspection PyMethodMayBeStatic
 	def stop(self):
