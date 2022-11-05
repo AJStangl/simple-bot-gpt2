@@ -24,7 +24,8 @@ setup(
 			  'shared_code/handlers',
 			  'shared_code/models',
 			  'shared_code/tagging',
-			  'shared_code/text_generation'],
+			  'shared_code/text_generation',
+			  'shared_code/praw'],
 
 	long_description=read('README.md'),
 	classifiers=[
