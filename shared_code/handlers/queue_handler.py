@@ -19,10 +19,13 @@ class QueueHandler(object):
 
 	@staticmethod
 	def reply_to_thing(q):
+		import logging
+		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
+		logging.info(f"::Call To Create New Reply To Comment")
 		generator = None
 		instance = None
 		try:
-			print(f":: Starting New Process Language Generation Process")
+			logging.info(f":: Starting New Process Language Generation Process")
 			name = q.get("name")
 			prompt = q.get("prompt")
 			thing_id = q.get("id")
@@ -34,11 +37,11 @@ class QueueHandler(object):
 				comment: Comment = instance.comment(id=thing_id)
 				reply = comment.reply(body=text)
 				if reply:
-					print(f":: Successfully replied to comment {thing_id}")
-					print(f":: Finished Language Generation Process...Cleaning up")
+					logging.info(f":: Successfully replied to comment {thing_id}")
+					logging.info(f":: Finished Language Generation Process...Cleaning up")
 					return
 				else:
-					print(f":: Failed to reply to comment {thing_id}")
+					logging.info(f":: Failed to reply to comment {thing_id}")
 					return
 
 			if thing_type == "submission":
@@ -46,20 +49,23 @@ class QueueHandler(object):
 				submission: Submission = instance.submission(id=thing_id)
 				reply = submission.reply(body=text)
 				if reply:
-					print(f":: Successfully replied to submission {thing_id}")
-					print(f":: Finished Language Generation Process...Cleaning up")
+					logging.info(f":: Successfully replied to submission {thing_id}")
+					logging.info(f":: Finished Language Generation Process...Cleaning up")
 					return
 				else:
-					print(f":: Failed To Reply To Submission")
+					logging.info(f":: Failed To Reply To Submission")
 					return
 		except Exception as e:
-			print(f":: Exception Occurred: {e} attempting to reply")
+			logging.info(f":: Exception Occurred: {e} attempting to reply")
 			return
 		finally:
 			del generator, instance
 
 	@staticmethod
 	def create_new_submission(q):
+		import logging
+		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
+		logging.info(f"::Call To Create New Submission")
 		instance = None
 		generator = None
 		try:
@@ -77,12 +83,12 @@ class QueueHandler(object):
 			if result.get("type") == "text":
 				result = subreddit.submit(title=result.get("title"), selftext=result.get("selftext"))
 				if result:
-					print(f":: Successfully created new submission to {subreddit_name} for {bot_name}")
+					logging.info(f":: Successfully created new submission to {subreddit_name} for {bot_name}")
 
 			if result.get("type") == "link":
 				result = subreddit.submit(title=result.get("title"), url=result.get("url"))
 				if result:
-					print(f":: Successfully created new link submission to {subreddit_name} for {bot_name}")
+					logging.info(f":: Successfully created new link submission to {subreddit_name} for {bot_name}")
 
 		except Exception as e:
 			print(f":: Failed To Create New Submission: {e}")

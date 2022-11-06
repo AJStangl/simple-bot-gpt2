@@ -34,6 +34,8 @@ class StreamPolling(object):
 				executor.submit(self._poll_for_comments)
 		except Exception as e:
 			logging.error(f"An exception has occurred {e} for {self.me.name} handling streams from {self.subreddit}")
+		finally:
+			executor.shutdown()
 
 	def _poll_for_submissions(self):
 		logging.info(f"Starting poll for submissions for {self.me.name}")
