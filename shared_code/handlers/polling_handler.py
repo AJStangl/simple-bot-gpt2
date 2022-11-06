@@ -34,7 +34,7 @@ class StreamPolling(object):
 					comment: Comment = comment
 					if comment is None:
 						logging.debug("No New Comments, continuing...")
-						time.sleep(10)
+						time.sleep(self.MAX_SLEEP_TIME)
 						continue
 
 					logging.debug(f"Comment {comment} found")
@@ -48,7 +48,6 @@ class StreamPolling(object):
 						prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
 						q = {'id': comment.id, 'name': self.me.name, 'prompt': prompt, 'type': 'comment'}
 						self.queue.put(q)
-						# self.do_thing(q)
 						time.sleep(self.MAX_SLEEP_TIME)
 
 				time.sleep(self.MAX_SLEEP_TIME)
@@ -75,7 +74,6 @@ class StreamPolling(object):
 					prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
 					q = {'id': submission.id, 'name': self.me.name, 'prompt': prompt, 'type': 'submission'}
 					self.queue.put(q)
-					# self.do_thing(q)
 					time.sleep(self.MAX_SLEEP_TIME)
 					continue
 

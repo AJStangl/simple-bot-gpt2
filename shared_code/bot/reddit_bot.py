@@ -15,7 +15,7 @@ from shared_code.text_generation.text.text_generation import ModelTextGenerator
 
 class RedditBot:
 	def __init__(self, bot_name: str, subreddit):
-		self.reddit: Reddit = praw.Reddit(site_name=bot_name)
+		self.reddit: Reddit = praw.Reddit(bot_name, reddit_url='https://botforum.net', oauth_url='https://oauth.botforum.net', submission_kind='t7', message_kind='t8', timeout=64);
 		self.subreddit: Subreddit = self.reddit.subreddit(subreddit)
 		# Threads
 		self.comment_polling_thread = threading.Thread(target=self.poll_for_comments, args=(), daemon=True, name="Thread-GC")
