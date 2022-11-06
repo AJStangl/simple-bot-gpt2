@@ -27,9 +27,9 @@ class StreamPolling(object):
 		self.queue = queue
 
 	def poll_for_all(self) -> None:
-		logging.info(f"Starting Poll For {self.me} and monitoring {self.subreddit} Comments amd Submissions")
+		logging.info(f"Starting Poll For {self.me.name} and monitoring {self.subreddit} Comments amd Submissions")
 		try:
-			with ThreadPoolExecutor(max_workers=2) as executor:
+			with ThreadPoolExecutor(max_workers=2, thread_name_prefix=self.me.name) as executor:
 				executor.submit(self._poll_for_submissions)
 				executor.submit(self._poll_for_comments)
 		except Exception as e:

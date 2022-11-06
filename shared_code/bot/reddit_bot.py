@@ -16,15 +16,16 @@ from shared_code.text_generation.text.text_generation import ModelTextGenerator
 
 
 
-class RedditBot(object):
+class RedditBot(threading.Thread):
 	def __init__(self, bot_name: str, subreddit):
+		super().__init__(name=bot_name, daemon=True)
 		self.reddit: Reddit = praw.Reddit(site_name=bot_name, ratelimit_seconds=600)
 		self.subreddit: Subreddit = self.reddit.subreddit(subreddit)
 
 		# Threads
-		self.poll_for_comments_and_submissions_thread = threading.Thread(target=self.poll_for_comments_and_submissions, args=(), daemon=True, name="Thread-ALL")
-		self.poll_for_reply_queue_thread = threading.Thread(target=self.poll_for_reply_queue, args=(), daemon=True, name="Thread-RQ")
-		self.poll_for_submission_queue_thread = threading.Thread(target=self.poll_for_submission_queue, args=(), daemon=True, name="Thread-SG")
+		self.poll_for_comments_and_submissions_thread = threading.Thread(target=self.poll_for_comments_and_submissions, args=(), daemon=True, name=bot_name)
+		self.poll_for_reply_queue_thread = threading.Thread(target=self.poll_for_reply_queue, args=(), daemon=True, name=bot_name)
+		self.poll_for_submission_queue_thread = threading.Thread(target=self.poll_for_submission_queue, args=(), daemon=True, name=bot_name)
 
 		# Queues
 		self.comment_queue = Queue()
