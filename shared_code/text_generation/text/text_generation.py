@@ -1,3 +1,4 @@
+import gc
 import random
 from typing import Optional
 import codecs
@@ -84,57 +85,65 @@ class ModelTextGenerator:
 		logging.info(f'{len(output_list)} sample(s) of text generated in {duration} seconds.')
 		return reply, raw_response
 
-	def generate_submission(self,sub: str, post_type: str) -> dict:
+	def generate_submission(self, sub: str, post_type: str) -> dict:
 		if post_type == "text":
 			return self._generate_text_post(sub)
 		elif post_type == "link":
 			return self._generate_link_post(sub)
 
 	def _generate_text_post(self, sub: str) -> dict:
-		max_attempts = 5
-		reply = None
-		title_regex = r"<\|sot\|>(.+?)<\|eot\|>"
-		text_body_regex = r"<\|sost\|>(.+?)<\|eost\|>"
-		prompt: str = f"<|soss r/{sub}|><|sot|>"
-		while reply is None:
-			for text in self.model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False):
-				try:
-					if max_attempts == 0:
-						return {}
+		try:
+			max_attempts = 5
+			reply = None
+			title_regex = r"<\|sot\|>(.+?)<\|eot\|>"
+			text_body_regex = r"<\|sost\|>(.+?)<\|eost\|>"
+			prompt: str = f"<|soss r/{sub}|><|sot|>"
+			while reply is None:
+				for text in self.model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False):
+					try:
+						if max_attempts == 0:
+							return {}
 
-					cleaned_text = text.replace(prompt, "<|sot|>")
-					result = cleaned_text.split("<|eost|>")[0] + "<|eost|>"
-					title = re.findall(title_regex, result)[0]
-					body = re.findall(text_body_regex, result)[0]
-					clean_body = self.clean_string(body)
-					clean_title = self.clean_string(title)
-					result = {
-						"title": clean_title,
-						"selftext": clean_body,
-						"type": "text"
-					}
-					return result
-				except Exception:
-					max_attempts -= 1
-					continue
+						cleaned_text = text.replace(prompt, "<|sot|>")
+						result = cleaned_text.split("<|eost|>")[0] + "<|eost|>"
+						title = re.findall(title_regex, result)[0]
+						body = re.findall(text_body_regex, result)[0]
+						clean_body = self.clean_string(body)
+						clean_title = self.clean_string(title)
+						result = {
+							"title": clean_title,
+							"selftext": clean_body,
+							"type": "text"
+						}
+						return result
+					except Exception:
+						max_attempts -= 1
+						continue
+		finally:
+			torch.cuda.empty_cache()
+			gc.collect()
 
 	def _generate_link_post(self, sub: str) -> dict:
-		reply = None
-		title_regex = r"<\|sot\|>(.+?)<\|eot\|>"
-		text_body_regex = r"<\|sost\|>(.+?)<\|eost\|>"
-		prompt: str = f"<|soss r/{sub}|><|sot|>"
+		try:
+			reply = None
+			title_regex = r"<\|sot\|>(.+?)<\|eot\|>"
+			text_body_regex = r"<\|sost\|>(.+?)<\|eost\|>"
+			prompt: str = f"<|soss r/{sub}|><|sot|>"
 
-		generate_text_post = self._generate_text_post(sub)
-		clean_title = generate_text_post.get("title")
-		body = generate_text_post.get("selftext")
+			generate_text_post = self._generate_text_post(sub)
+			clean_title = generate_text_post.get("title")
+			body = generate_text_post.get("selftext")
 
-		image_url = ImageHandler().get_image_post(body=body)
-		result = {
-			"title": clean_title,
-			"url": image_url,
-			"type": "link"
-		}
-		return result
+			image_url = ImageHandler().get_image_post(body=body)
+			result = {
+				"title": clean_title,
+				"url": image_url,
+				"type": "link"
+			}
+			return result
+		finally:
+			torch.cuda.empty_cache()
+			gc.collect()
 
 	@staticmethod
 	def clean_string(text) -> Optional[str]:

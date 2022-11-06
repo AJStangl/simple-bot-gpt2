@@ -2,6 +2,7 @@ import logging
 import random
 import time
 from multiprocessing import Process, Queue
+import gc
 
 import pbfaw as praw
 import torch
@@ -60,6 +61,8 @@ class QueueHandler(object):
 			return
 		finally:
 			del generator, instance
+			torch.cuda.empty_cache()
+			gc.collect()
 
 	@staticmethod
 	def create_new_submission(q):
@@ -95,6 +98,8 @@ class QueueHandler(object):
 			return
 		finally:
 			del generator, instance
+			torch.cuda.empty_cache()
+			gc.collect()
 
 	def poll_for_reply(self):
 		logging.info(f"Starting poll_for_reply")
@@ -103,7 +108,7 @@ class QueueHandler(object):
 				logging.debug(f"Number Of Items In Queue: {self.queue.qsize()}, processing next item")
 				q = self.queue.get()
 				if q:
-					p = Process(target=self.reply_to_thing, args=(q,))
+					p = Process(target=self.reply_to_thing, args=(q,), daemon=True)
 					p.start()
 					p.join()
 					logging.info(f"Finished Processing Queue Item")
@@ -117,7 +122,7 @@ class QueueHandler(object):
 			try:
 				if self.time_since_post <= 0:
 					message = self.create_submission_message(post_type=post_types)
-					p = Process(target=self.create_new_submission, args=(message,))
+					p = Process(target=self.create_new_submission, args=(message,), daemon=True)
 					p.start()
 					p.join()
 					if p.exitcode == 0:

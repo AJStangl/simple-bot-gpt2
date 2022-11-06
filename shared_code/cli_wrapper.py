@@ -73,8 +73,10 @@ def run_multi_bot(bot_names: str, sub_reddit: str, reply_rate: str):
 	os.environ["ReplyThreshold"] = reply_rate
 	logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
 	logging.info(f"Setting Random Reply To {reply_rate}")
+	bots = []
 	for bot_name in bot_names.split(","):
 		bot = RedditBot(bot_name, sub_reddit)
+		bots.append(bot)
 		bot.name = bot_name
 		bot.daemon = True
 		bot.run()
@@ -83,6 +85,7 @@ def run_multi_bot(bot_names: str, sub_reddit: str, reply_rate: str):
 			time.sleep(5)
 	except KeyboardInterrupt:
 		logging.info('Shutdown')
+		[bot.stop() for bot in bots]
 		exit(0)
 
 

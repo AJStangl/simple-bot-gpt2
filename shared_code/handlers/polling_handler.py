@@ -26,18 +26,7 @@ class StreamPolling(object):
 		self.banned_words: [str] = [item.lower() for item in os.environ["BannedWords"].split(",")]
 		self.queue = queue
 
-	def poll_for_all(self) -> None:
-		logging.info(f"Starting Poll For {self.me.name} and monitoring {self.subreddit} Comments amd Submissions")
-		try:
-			with ThreadPoolExecutor(max_workers=2, thread_name_prefix=self.me.name) as executor:
-				executor.submit(self._poll_for_submissions)
-				executor.submit(self._poll_for_comments)
-		except Exception as e:
-			logging.error(f"An exception has occurred {e} for {self.me.name} handling streams from {self.subreddit}")
-		finally:
-			executor.shutdown()
-
-	def _poll_for_submissions(self):
+	def poll_for_submissions(self):
 		logging.info(f"Starting poll for submissions for {self.me.name}")
 		while True:
 			try:
@@ -52,7 +41,7 @@ class StreamPolling(object):
 				time.sleep(self.MAX_SLEEP_TIME)
 				continue
 
-	def _poll_for_comments(self):
+	def poll_for_comments(self):
 		logging.info(f"Starting poll for comments for {self.me.name}")
 		while True:
 			try:
