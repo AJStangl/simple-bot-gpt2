@@ -1,8 +1,9 @@
 from typing import Optional
 
-from praw import Reddit
-from praw.models import Comment, Redditor, Submission
-from praw.models.reddit.base import RedditBase
+import pbfaw as praw
+from pbfaw import Reddit
+from pbfaw.models import Comment, Redditor, Submission
+from pbfaw.models.reddit.base import RedditBase
 
 from shared_code.models.reddit_data import RedditData
 from shared_code.tagging.tags import Tagger

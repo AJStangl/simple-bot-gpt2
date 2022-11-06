@@ -28,12 +28,10 @@ class BotRunner:
 	def run_multi_bot(bot_names: str, sub_reddit: str):
 		from threading import Thread
 		bots = bot_names.split(",")
-		tasks = []
 		for bot in bots:
 			t = Thread(target=BotRunner._run_bot, args=(bot, sub_reddit,))
-			tasks.append(t)
-
-		[t.start() for t in tasks]
+			t.start()
+			time.sleep(10)
 		try:
 			while True:
 				time.sleep(1)

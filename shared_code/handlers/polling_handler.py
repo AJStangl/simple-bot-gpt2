@@ -5,10 +5,12 @@ import random
 import time
 from datetime import timezone
 from multiprocessing.queues import Queue
+import torch
 
-from praw import Reddit
-from praw.models import Redditor, Submission, Comment, Subreddit
-from praw.models.reddit.base import RedditBase
+import pbfaw as praw
+from pbfaw import Reddit
+from pbfaw.models import Redditor, Submission, Comment, Subreddit
+from pbfaw.models.reddit.base import RedditBase
 
 from shared_code.handlers.tagging_handler import TaggingHandler
 from shared_code.models.reddit_data import RedditData
@@ -50,7 +52,7 @@ class StreamPolling(object):
 						self.queue.put(q)
 						time.sleep(self.MAX_SLEEP_TIME)
 
-				time.sleep(self.MAX_SLEEP_TIME)
+				time.sleep(10)
 				continue
 
 			except Exception as e:
@@ -87,44 +89,8 @@ class StreamPolling(object):
 
 	# noinspection DuplicatedCode
 	def poll_for_content_creation(self):
-		logging.info(f"Starting Submission Post Process For {self.me} and monitoring {self.subreddit}")
-		interval_between_posts = 60 * 8
-		submission_store = dict()
-
-		allowed = os.environ["AllowSubmissions"].split(",")
-		for pair in allowed:
-			name_time = pair.split(":")
-			sub_name = name_time[0]
-			time_interval = int(name_time[1])
-			submission_store[sub_name] = time_interval
-
-		while True:
-			dt = datetime.datetime.now(timezone.utc)
-			utc_time = dt.replace(tzinfo=timezone.utc)
-			utc_timestamp = utc_time.timestamp()
-			submissions = self._get_latest_submission()
-			if len(submissions) == 0:
-				logging.debug(f"No New Submissions Found {self.subreddit.display_name}")
-				time.sleep(self.MAX_SLEEP_TIME)
-				continue
-			for latest_submission in submissions:
-				time_interval = (utc_timestamp - latest_submission.created_utc) // 60
-				if time_interval > interval_between_posts:
-					for sub in submission_store.keys():
-						logging.info(f"Sending Out Submission For {self.me} on {sub}")
-						is_attempting = True
-						while is_attempting:
-							it_worked = self._create_text_post(sub)
-							if it_worked:
-								logging.info(f"Sent Submission To Subreddit {sub}")
-								is_attempting = False
-								continue
-							else:
-								logging.info(f"Failed to send submission")
-								continue
-
-			time.sleep(self.MAX_SLEEP_TIME)
-			continue
+		# TODO: Figure out how to create a submission
+		pass
 
 	def _should_reply(self, comment: Comment) -> bool:
 		random_reply_value = random.randint(0, self.reply_threshold)
@@ -184,8 +150,6 @@ class StreamPolling(object):
 
 	@staticmethod
 	def do_thing(q):
-		import torch
-		import praw
 		print(f":: Starting New Process Language Generation Process")
 		name = q.get("name")
 		prompt = q.get("prompt")
