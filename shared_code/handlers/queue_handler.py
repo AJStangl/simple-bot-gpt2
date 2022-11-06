@@ -1,4 +1,5 @@
 import logging
+import random
 import time
 from multiprocessing import Process, Queue
 
@@ -95,11 +96,11 @@ class QueueHandler:
 
 	def poll_for_submission_generation(self):
 		logging.info(f"Starting poll_for_submission_generation")
-		post_types = ["text", "link"]
+		post_types = random.choice(["text", "link"])
 		while True:
 			try:
 				if self.time_since_post <= 0:
-					message = self.create_submission_message(post_type=post_types[1])
+					message = self.create_submission_message(post_type=post_types)
 					p = Process(target=self.create_new_submission, args=(message,))
 					p.start()
 					p.join()
@@ -112,6 +113,7 @@ class QueueHandler:
 				time.sleep(10)
 
 	def create_submission_message(self, post_type):
+		logging.info(f"Creating Submission Message For {post_type}")
 		return {
 			"name": self.reddit.user.me().name,
 			"subreddit": self.subreddit.display_name,
