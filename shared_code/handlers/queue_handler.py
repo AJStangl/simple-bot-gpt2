@@ -12,10 +12,10 @@ from shared_code.text_generation.text.text_generation import ModelTextGenerator
 
 
 class QueueHandler(object):
-	def __init__(self, comment_queue: Queue, reddit: Reddit, subreddit: Subreddit):
+	def __init__(self, comment_queue: Queue, reddit: Reddit, subreddit):
 		self.queue: Queue = comment_queue
 		self.reddit: Reddit = reddit
-		self.subreddit: Subreddit = subreddit
+		self.subreddit = subreddit
 		self.time_since_post = random.randint(300, 600)
 
 	@staticmethod
@@ -122,12 +122,13 @@ class QueueHandler(object):
 			try:
 				if self.time_since_post <= 0:
 					message = self.create_submission_message(post_type=post_types)
-					p = Process(target=self.create_new_submission, args=(message,), daemon=True)
-					p.start()
-					p.join()
-					if p.exitcode == 0:
-						logging.info(f"::p.exitcode: {p.exitcode}")
-						self.time_since_post = 3600
+					for m in message:
+						p = Process(target=self.create_new_submission, args=(m,), daemon=True)
+						p.start()
+						p.join()
+						if p.exitcode == 0:
+							logging.info(f"::p.exitcode: {p.exitcode}")
+							self.time_since_post = 3600
 					continue
 				else:
 					continue
@@ -136,9 +137,13 @@ class QueueHandler(object):
 				time.sleep(30)
 
 	def create_submission_message(self, post_type):
-		logging.info(f"Creating Submission Message For {post_type}")
-		return {
-			"name": self.reddit.user.me().name,
-			"subreddit": self.subreddit.display_name,
-			"type": post_type
-		}
+		subs = self.subreddit.display_name.split("+")
+		for sub in subs:
+			logging.info(f"Creating Submission Message For {post_type}")
+			foo = {
+				"name": self.reddit.user.me().name,
+				"subreddit": sub,
+				"type": post_type
+			}
+			yield foo
+
