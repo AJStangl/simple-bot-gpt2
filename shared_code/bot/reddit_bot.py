@@ -21,63 +21,30 @@ class RedditBot:
 		self.subreddit: Subreddit = self.reddit.subreddit(subreddit)
 
 		# Threads
-		self.comment_polling_thread = threading.Thread(target=self.poll_for_comments, args=(), daemon=True, name="Thread-GC")
-		self.submission_polling_thread = threading.Thread(target=self.poll_for_submissions, args=(), daemon=True, name="Thread-GS")
-		self.queue_thread = threading.Thread(target=self.poll_for_reply, args=(), daemon=True, name="Thread-RQ")
-
+		self.poll_for_comments_and_submissions_thread = threading.Thread(target=self.poll_for_comments_and_submissions, args=(), daemon=True, name="Thread-ALL")
+		self.poll_for_reply_queue_thread = threading.Thread(target=self.poll_for_reply_queue, args=(), daemon=True, name="Thread-RQ")
+		self.poll_for_submission_queue_thread = threading.Thread(target=self.poll_for_submission_queue, args=(), daemon=True, name="Thread-SG")
 
 		# Queues
-		self.queue = Queue()
+		self.comment_queue = Queue()
 
-	@staticmethod
-	def reply_to_thing(q):
-		print(f":: Starting New Process Language Generation Process")
-		name = q.get("name")
-		prompt = q.get("prompt")
-		thing_id = q.get("id")
-		thing_type = q.get("type")
-		generator = ModelTextGenerator(name, torch.cuda.is_available())
-		instance = praw.Reddit(site_name=name, ratelimit_seconds=300)
-		if thing_type == "comment":
-			text, raw_text = generator.generate_text(prompt)
-			comment: Comment = instance.comment(id=thing_id)
-			reply = comment.reply(body=text)
-			if reply:
-				print(f":: Successfully replied to comment {thing_id}")
-				print(f":: Finished Language Generation Process...Cleaning up")
-				del generator, instance
-				return None
-			else:
-				raise Exception(f":: Failed to reply to comment {thing_id}")
+	def poll_for_reply_queue(self):
+		"""Thread for independent Queue Handler For Generation of Replies"""
+		QueueHandler(self.comment_queue, self.reddit, self.subreddit).poll_for_reply()
 
-		if thing_type == "submission":
-			text, raw_text = generator.generate_text(prompt)
-			submission: Submission = instance.submission(id=thing_id)
-			reply = submission.reply(body=text)
-			if reply:
-				print(f":: Replied To Submission")
-				print(f":: Finished Language Generation Process...Cleaning up")
-				del generator, instance
-				return None
-			else:
-				raise Exception(f":: Failed To Reply To Submission")
+	def poll_for_submission_queue(self):
+		"""Thread for independent Queue Handler For Generation of Replies"""
+		QueueHandler(self.comment_queue,  self.reddit, self.subreddit).poll_for_submission_generation()
 
-	def poll_for_reply(self):
-		QueueHandler(self.queue)\
-			.poll_for_reply()
-
-	def poll_for_comments(self):
-		StreamPolling(self.reddit, self.subreddit, self.queue)\
-			.poll_for_comments()
-
-	def poll_for_submissions(self):
-		StreamPolling(self.reddit, self.subreddit, self.queue)\
-			.poll_for_submissions()
+	def poll_for_comments_and_submissions(self):
+		"""Thread for independent Polling Handler For Comments and Submissions"""
+		StreamPolling(self.reddit, self.subreddit, self.comment_queue).poll_for_all()
 
 	def run(self):
-		self.comment_polling_thread.start()
-		self.submission_polling_thread.start()
-		self.queue_thread.start()
+		"""Starts the bot - Invoked from run_bot.py"""
+		self.poll_for_comments_and_submissions_thread.start()
+		self.poll_for_submission_queue_thread.start()
+		self.poll_for_reply_queue_thread.start()
 
 	# noinspection PyMethodMayBeStatic
 	def stop(self):
