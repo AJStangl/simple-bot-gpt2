@@ -2,6 +2,7 @@ import logging
 import os
 import random
 import time
+from concurrent.futures import ThreadPoolExecutor
 from multiprocessing.queues import Queue
 
 from pbfaw import Reddit
@@ -27,26 +28,44 @@ class StreamPolling(object):
 
 	def poll_for_all(self) -> None:
 		logging.info(f"Starting Poll For {self.me} and monitoring {self.subreddit} Comments amd Submissions")
+		try:
+			with ThreadPoolExecutor(max_workers=2) as executor:
+				executor.submit(self._poll_for_submissions)
+				executor.submit(self._poll_for_comments)
+		except Exception as e:
+			logging.error(f"An exception has occurred {e} for {self.me.name} handling streams from {self.subreddit}")
+
+	def _poll_for_submissions(self):
+		logging.info(f"Starting poll for submissions for {self.me.name}")
 		while True:
 			try:
-				comment_stream = self.subreddit.stream.comments(pause_after=0, skip_existing=True)
 				submission_stream = self.subreddit.stream.submissions(pause_after=0, skip_existing=True)
-				for item in self._chain_listing_generators(comment_stream, submission_stream):
-					if isinstance(item, Comment):
-						self._handle_comment(item)
-					if isinstance(item, Submission):
-						self._handle_submission(item)
-					else:
-						logging.error(f"Unknown Item Type {item}")
+				for submission in submission_stream:
+					self._handle_submission(submission)
+					continue
 			except Exception as e:
-				logging.error(
-					f"An exception has occurred {e} for {self.me.name} handling streams from {self.subreddit}")
+				logging.error(f"An exception has occurred {e}")
 				continue
 			finally:
 				time.sleep(self.MAX_SLEEP_TIME)
 				continue
 
-	def _handle_comment(self, comment) -> None:
+	def _poll_for_comments(self):
+		logging.info(f"Starting poll for comments for {self.me.name}")
+		while True:
+			try:
+				comment_stream = self.subreddit.stream.comments(pause_after=0, skip_existing=True)
+				for comment in comment_stream:
+					self._handle_comment(comment)
+					continue
+			except Exception as e:
+				logging.error(f"An exception has occurred {e}")
+				continue
+			finally:
+				time.sleep(self.MAX_SLEEP_TIME)
+				continue
+
+	def _handle_comment(self, comment: Comment) -> None:
 		try:
 			comment: Comment = comment
 			if comment is None:
@@ -75,7 +94,7 @@ class StreamPolling(object):
 		finally:
 			time.sleep(self.REPLY_SLEEP_TIME)
 
-	def _handle_submission(self, submission) -> None:
+	def _handle_submission(self, submission: Submission) -> None:
 		try:
 			submission: Submission = submission
 			if submission is None:
@@ -157,4 +176,3 @@ class StreamPolling(object):
 		except Exception as e:
 			logging.error(f"Error Trying to Get Grandparent: {e}")
 			return "Exception"
-

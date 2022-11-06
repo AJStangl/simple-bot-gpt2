@@ -10,12 +10,12 @@ from pbfaw.reddit import Comment, Submission, Reddit, Subreddit
 from shared_code.text_generation.text.text_generation import ModelTextGenerator
 
 
-class QueueHandler:
+class QueueHandler(object):
 	def __init__(self, comment_queue: Queue, reddit: Reddit, subreddit: Subreddit):
 		self.queue: Queue = comment_queue
 		self.reddit: Reddit = reddit
 		self.subreddit: Subreddit = subreddit
-		self.time_since_post = 0
+		self.time_since_post = random.randint(300, 600)
 
 	@staticmethod
 	def reply_to_thing(q):
@@ -38,7 +38,8 @@ class QueueHandler:
 					print(f":: Finished Language Generation Process...Cleaning up")
 					return
 				else:
-					raise Exception(f":: Failed to reply to comment {thing_id}")
+					print(f":: Failed to reply to comment {thing_id}")
+					return
 
 			if thing_type == "submission":
 				text, raw_text = generator.generate_text(prompt)
@@ -49,7 +50,11 @@ class QueueHandler:
 					print(f":: Finished Language Generation Process...Cleaning up")
 					return
 				else:
-					raise Exception(f":: Failed To Reply To Submission")
+					print(f":: Failed To Reply To Submission")
+					return
+		except Exception as e:
+			print(f":: Exception Occurred: {e} attempting to reply")
+			return
 		finally:
 			del generator, instance
 
@@ -66,6 +71,7 @@ class QueueHandler:
 			generator = ModelTextGenerator(bot_name, torch.cuda.is_available())
 
 			subreddit: Subreddit = instance.subreddit(subreddit_name)
+
 			result: dict = generator.generate_submission(subreddit_name, post_type)
 
 			if result.get("type") == "text":
@@ -77,6 +83,10 @@ class QueueHandler:
 				result = subreddit.submit(title=result.get("title"), url=result.get("url"))
 				if result:
 					print(f":: Successfully created new link submission to {subreddit_name} for {bot_name}")
+
+		except Exception as e:
+			print(f":: Failed To Create New Submission: {e}")
+			return
 		finally:
 			del generator, instance
 
@@ -104,13 +114,15 @@ class QueueHandler:
 					p = Process(target=self.create_new_submission, args=(message,))
 					p.start()
 					p.join()
-					self.time_since_post = 3600
+					if p.exitcode == 0:
+						logging.info(f"::p.exitcode: {p.exitcode}")
+						self.time_since_post = 3600
 					continue
 				else:
 					continue
 			finally:
-				self.time_since_post -= 10
-				time.sleep(10)
+				self.time_since_post -= 30
+				time.sleep(30)
 
 	def create_submission_message(self, post_type):
 		logging.info(f"Creating Submission Message For {post_type}")

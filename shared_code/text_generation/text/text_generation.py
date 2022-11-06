@@ -100,7 +100,7 @@ class ModelTextGenerator:
 			for text in self.model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False):
 				try:
 					if max_attempts == 0:
-						raise Exception("Max Attempts Reached")
+						return {}
 
 					cleaned_text = text.replace(prompt, "<|sot|>")
 					result = cleaned_text.split("<|eost|>")[0] + "<|eost|>"
@@ -114,7 +114,7 @@ class ModelTextGenerator:
 						"type": "text"
 					}
 					return result
-				except IndexError:
+				except Exception:
 					max_attempts -= 1
 					continue
 

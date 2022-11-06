@@ -61,8 +61,7 @@ def create_training(redditor: str):
 @click.option("--reply-rate", prompt='The base rate at which a bot will randomly reply. N / 1000', default='900')
 def run_multi_bot(bot_names: str, sub_reddit: str, reply_rate: str):
 	os.environ["ReplyThreshold"] = reply_rate
-	logging.basicConfig(format=f'|:: Thread:%(thread)s|%(asctime)s|{bot_names}|{sub_reddit}|::| %(message)s',
-						level=logging.INFO)
+	logging.basicConfig(format=f'|:: Thread:%(thread)s|%(asctime)s|{bot_names}|{sub_reddit}|::| %(message)s', level=logging.INFO)
 	logging.info(f"Setting Random Reply To {reply_rate}")
 	BotRunner.run_multi_bot(bot_names, sub_reddit)
 

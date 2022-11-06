@@ -15,7 +15,8 @@ from shared_code.handlers.queue_handler import QueueHandler
 from shared_code.text_generation.text.text_generation import ModelTextGenerator
 
 
-class RedditBot:
+
+class RedditBot(object):
 	def __init__(self, bot_name: str, subreddit):
 		self.reddit: Reddit = praw.Reddit(site_name=bot_name, ratelimit_seconds=600)
 		self.subreddit: Subreddit = self.reddit.subreddit(subreddit)
