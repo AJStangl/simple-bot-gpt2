@@ -16,7 +16,7 @@ class QueueHandler(object):
 		self.queue: Queue = comment_queue
 		self.reddit: Reddit = reddit
 		self.subreddit = subreddit
-		self.time_since_post = random.randint(300, 600)
+		self.time_since_post = 60 * 60 * 4
 
 	@staticmethod
 	def reply_to_thing(q):
@@ -32,7 +32,7 @@ class QueueHandler(object):
 			thing_id = q.get("id")
 			thing_type = q.get("type")
 			generator = ModelTextGenerator(name, torch.cuda.is_available())
-			instance = praw.Reddit(site_name=name, ratelimit_seconds=600)
+			instance = praw.Reddit(site_name=name)
 			if thing_type == "comment":
 				text, raw_text = generator.generate_text(prompt)
 				comment: Comment = instance.comment(id=thing_id)
@@ -76,7 +76,7 @@ class QueueHandler(object):
 			bot_name = q.get("name")
 			subreddit_name = q.get("subreddit")
 			post_type = q.get("type")
-			instance = praw.Reddit(site_name=bot_name, ratelimit_seconds=600)
+			instance = praw.Reddit(site_name=bot_name)
 			generator = ModelTextGenerator(bot_name, torch.cuda.is_available())
 
 			subreddit: Subreddit = instance.subreddit(subreddit_name)
@@ -128,7 +128,6 @@ class QueueHandler(object):
 						p.join()
 						if p.exitcode == 0:
 							logging.info(f"::p.exitcode: {p.exitcode}")
-							self.time_since_post = 3600
 					continue
 				else:
 					continue

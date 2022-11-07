@@ -21,10 +21,14 @@ setup(
 			  'shared_code/bot',
 			  'shared_code/clients',
 			  'shared_code/fine_tuning',
+			  'shared_code/fine_tuning/persistence',
+			  'shared_code/fine_tuning/tensor_encoding',
 			  'shared_code/handlers',
 			  'shared_code/models',
 			  'shared_code/tagging',
-			  'shared_code/text_generation'],
+			  'shared_code/text_generation',
+			  'shared_code/text_generation/text',
+			  'shared_code/text_generation/toxicity'],
 
 	long_description=read('README.md'),
 	classifiers=[
