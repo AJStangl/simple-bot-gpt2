@@ -1,3 +1,5 @@
+import gc
+import random
 from typing import Optional
 import codecs
 import logging
@@ -8,6 +10,7 @@ import torch
 import ftfy
 from detoxify import Detoxify
 from simpletransformers.language_generation import LanguageGenerationModel
+from shared_code.handlers.image_handler import ImageHandler
 
 
 class ModelTextGenerator:
@@ -22,9 +25,11 @@ class ModelTextGenerator:
 			'repetition_penalty': 1.008,
 			'stop_token': '<|endoftext|>'
 		}
+		self.devices = ['cuda:0', 'cuda:1']
 		self.model_path: str = os.environ[f"{bot_name}"]
 		self.model = LanguageGenerationModel("gpt2", self.model_path, use_cuda=use_cuda)
-		self.detoxify = Detoxify('unbiased-small', device=torch.device('cuda' if use_cuda else 'cpu'))
+		self.detoxify = Detoxify('unbiased-small', device=torch.device(random.choice(self.devices) if use_cuda else 'cpu'))
+		self.image_handler: ImageHandler = ImageHandler()
 
 	@staticmethod
 	def capture_tag(test_string: str, expected_tags=None):
@@ -80,24 +85,65 @@ class ModelTextGenerator:
 		logging.info(f'{len(output_list)} sample(s) of text generated in {duration} seconds.')
 		return reply, raw_response
 
-	def generate_text_post(self, sub: str) -> dict:
-		reply = None
-		title_regex = r"<\|sot\|>(.+?)<\|eot\|>"
-		text_body_regex = r"<\|sost\|>(.+?)<\|eost\|>"
-		prompt: str = f"<|ososs r/{sub}|><|sot|>"
-		while reply is None:
-			for text in self.model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False):
-				cleaned_text = text.replace(prompt, "<|sot|>")
-				result = cleaned_text.split("<|eost|>")[0] + "<|eost|>"
-				title = re.findall(title_regex, result)[0]
-				body = re.findall(text_body_regex, result)[0]
-				clean_body = self.clean_string(body)
-				clean_title = self.clean_string(title)
-				result = {
-					"title": clean_title,
-					"selftext": clean_body
-				}
-				return result
+	def generate_submission(self, sub: str, post_type: str) -> dict:
+		if post_type == "text":
+			return self._generate_text_post(sub)
+		elif post_type == "link":
+			return self._generate_link_post(sub)
+
+	def _generate_text_post(self, sub: str) -> dict:
+		try:
+			max_attempts = 5
+			reply = None
+			title_regex = r"<\|sot\|>(.+?)<\|eot\|>"
+			text_body_regex = r"<\|sost\|>(.+?)<\|eost\|>"
+			prompt: str = f"<|soss r/{sub}|><|sot|>"
+			while reply is None:
+				for text in self.model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False):
+					try:
+						if max_attempts == 0:
+							return {}
+
+						cleaned_text = text.replace(prompt, "<|sot|>")
+						result = cleaned_text.split("<|eost|>")[0] + "<|eost|>"
+						title = re.findall(title_regex, result)[0]
+						body = re.findall(text_body_regex, result)[0]
+						clean_body = self.clean_string(body)
+						clean_title = self.clean_string(title)
+						result = {
+							"title": clean_title,
+							"selftext": clean_body,
+							"type": "text"
+						}
+						return result
+					except Exception:
+						max_attempts -= 1
+						continue
+		finally:
+			torch.cuda.empty_cache()
+			gc.collect()
+
+	def _generate_link_post(self, sub: str) -> dict:
+		try:
+			reply = None
+			title_regex = r"<\|sot\|>(.+?)<\|eot\|>"
+			text_body_regex = r"<\|sost\|>(.+?)<\|eost\|>"
+			prompt: str = f"<|soss r/{sub}|><|sot|>"
+
+			generate_text_post = self._generate_text_post(sub)
+			clean_title = generate_text_post.get("title")
+			body = generate_text_post.get("selftext")
+
+			image_url = ImageHandler().get_image_post(body=body)
+			result = {
+				"title": clean_title,
+				"url": image_url,
+				"type": "link"
+			}
+			return result
+		finally:
+			torch.cuda.empty_cache()
+			gc.collect()
 
 	@staticmethod
 	def clean_string(text) -> Optional[str]:

@@ -1,82 +1,59 @@
 import logging
 import sys
 import threading
+import time
 from multiprocessing import Process, Queue
 
-import praw
+
 import torch
+import praw
 from praw import Reddit
 from praw.models import Subreddit
 from praw.reddit import Comment, Submission
 from shared_code.handlers.polling_handler import StreamPolling
-
+from shared_code.handlers.queue_handler import QueueHandler
 from shared_code.text_generation.text.text_generation import ModelTextGenerator
 
 
-class RedditBot:
+
+class RedditBot(threading.Thread):
 	def __init__(self, bot_name: str, subreddit):
-		self.reddit: Reddit = praw.Reddit(site_name=bot_name)
+		super().__init__(name=bot_name, daemon=True)
+		self.reddit: Reddit = praw.Reddit(site_name=bot_name, ratelimit_seconds=600, timeout=64)
 		self.subreddit: Subreddit = self.reddit.subreddit(subreddit)
+
 		# Threads
-		self.comment_polling_thread = threading.Thread(target=self.poll_for_comments, args=(), daemon=True, name="Thread-GC")
-		self.submission_polling_thread = threading.Thread(target=self.poll_for_submissions, args=(), daemon=True, name="Thread-GS")
-		# self.create_post_thread = threading.Thread(target=self.poll_for_submission_creation, args=(), daemon=True, name="Thread-PS")
-		self.queue_thread = threading.Thread(target=self.poll_for_queue, args=(),  daemon=True, name="Thread-RQ")
-		self.queue = Queue()
+		self.poll_for_submissions_thread = threading.Thread(target=self.poll_for_submissions, args=(), daemon=True, name=bot_name)
+		self.poll_for_comments_thread = threading.Thread(target=self.poll_for_comments, args=(), daemon=True, name=bot_name)
+		self.poll_for_reply_queue_thread = threading.Thread(target=self.poll_for_reply_queue, args=(), daemon=True, name=bot_name)
+		self.poll_for_submission_queue_thread = threading.Thread(target=self.poll_for_submission_queue, args=(), daemon=True, name=bot_name)
 
-	@staticmethod
-	def do_thing(q):
-		print(f":: Starting New Process Language Generation Process")
-		name = q.get("name")
-		prompt = q.get("prompt")
-		thing_id = q.get("id")
-		thing_type = q.get("type")
-		generator = ModelTextGenerator(name, torch.cuda.is_available())
-		instance = praw.Reddit(site_name=name)
-		if thing_type == "comment":
-			text, raw_text = generator.generate_text(prompt)
-			comment: Comment = instance.comment(id=thing_id)
-			comment.reply(body=text)
-			print(f":: Replied To Comment")
-		if thing_type == "submission":
-			text, raw_text = generator.generate_text(prompt)
-			submission: Submission = instance.submission(id=thing_id)
-			submission.reply(body=text)
-			print(f":: Replied To Submission")
+		# Queues
+		self.comment_queue = Queue()
 
-		print(f":: Finished Language Generation Process...Cleaning up")
-		del generator, instance
-		return None
+	def poll_for_reply_queue(self):
+		"""Thread for independent Queue Handler For Generation of Replies"""
+		QueueHandler(self.comment_queue, self.reddit, self.subreddit).poll_for_reply()
 
-	def poll_for_queue(self):
-		while True:
-			while self.queue.qsize() > 0:
-				logging.info(f"Number Of Items In Queue: {self.queue.qsize()}")
-				logging.info(f":: Processing Queue Item")
-				q = self.queue.get(block=True)
-				p = Process(target=self.do_thing, args=(q,))
-				p.start()
-				p.join()
-				logging.info(f":: Finished Processing Queue Item")
-				continue
+	def poll_for_submission_queue(self):
+		"""Thread for independent Queue Handler For Generation of Replies"""
+		QueueHandler(self.comment_queue,  self.reddit, self.subreddit).poll_for_submission_generation()
 
 	def poll_for_comments(self):
-		StreamPolling(self.reddit, self.subreddit, self.queue)\
-			.poll_for_comments()
+		"""Thread for independent Polling Handler For Comments and Submissions"""
+		StreamPolling(self.reddit, self.subreddit, self.comment_queue).poll_for_comments()
 
 	def poll_for_submissions(self):
-		StreamPolling(self.reddit, self.subreddit, self.queue)\
-			.poll_for_submissions()
-
-	def poll_for_submission_creation(self):
-		StreamPolling(self.reddit, self.subreddit, self.queue)\
-			.poll_for_content_creation()
+		"""Thread for independent Polling Handler For Comments and Submissions"""
+		StreamPolling(self.reddit, self.subreddit, self.comment_queue).poll_for_submissions()
 
 	def run(self):
-		self.comment_polling_thread.start()
-		self.submission_polling_thread.start()
-		self.queue_thread.start()
-		# self.create_post_thread.start()
+		"""Starts the bot - Invoked from run_bot.py"""
+		self.poll_for_submissions_thread.start()
+		self.poll_for_comments_thread.start()
+		self.poll_for_submission_queue_thread.start()
+		self.poll_for_reply_queue_thread.start()
+
 
 	# noinspection PyMethodMayBeStatic
 	def stop(self):
