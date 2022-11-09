@@ -121,14 +121,16 @@ class QueueHandler(object):
 		while True:
 			try:
 				if self.time_since_post <= 0:
-					message = self.create_submission_message(post_type=post_types)
-					for m in message:
-						p = Process(target=self.create_new_submission, args=(m,), daemon=True)
-						p.start()
-						p.join()
-						if p.exitcode == 0:
-							logging.info(f"::p.exitcode: {p.exitcode}")
 					continue
+					# message = self.create_submission_message(post_type=post_types)
+					# for m in message:
+					# 	# p = Process(target=self.create_new_submission, args=(m,), daemon=True)
+					# 	# p.start()
+					# 	# p.join()
+					# 	# if p.exitcode == 0:
+					# 		# logging.info(f"::p.exitcode: {p.exitcode}")
+					# 	# self.time_since_post = 60 * 60 * 4
+					# continue
 				else:
 					continue
 			finally:

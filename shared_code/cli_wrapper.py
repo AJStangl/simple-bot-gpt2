@@ -65,6 +65,7 @@ def create_training(redditor: str):
 	logging.basicConfig(format=f'|:: Thread:%(thread)s|%(asctime)s|{redditor}|::| %(message)s', level=logging.INFO)
 	TrainingDataGenerator().run(redditor.split(","))
 
+
 @cli4.command()
 @click.option("--bot-names", prompt='specify the bot name. Must be present in the praw.ini file', default='')
 @click.option("--sub-reddit", prompt='specify the sub-reddit name(s). Example. CoopAndPabloPlayHouse+THE_Pablop+SubSimGPT2Interactive', default='CoopAndPabloPlayHouse')
@@ -85,7 +86,7 @@ def run_multi_bot(bot_names: str, sub_reddit: str, reply_rate: str):
 			time.sleep(5)
 	except KeyboardInterrupt:
 		logging.info('Shutdown')
-		[bot.stop() for bot in bots]
+		map(lambda x: x.stop(), bots)
 		exit(0)
 
 
