@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import random
@@ -9,6 +10,7 @@ from praw import Reddit
 from praw.models import Redditor, Submission, Comment, Subreddit
 from praw.models.reddit.base import RedditBase
 
+from shared_code.messaging.message_sender import MessageBroker
 from shared_code.handlers.tagging_handler import TaggingHandler
 from shared_code.models.reddit_data import RedditData
 
@@ -25,6 +27,7 @@ class StreamPolling(object):
 		self.tigger_words: [str] = [item.lower() for item in os.environ["TriggerWords"].split(",")]
 		self.banned_words: [str] = [item.lower() for item in os.environ["BannedWords"].split(",")]
 		self.queue = queue
+		self.message_broker: MessageBroker = MessageBroker()
 
 	def poll_for_submissions(self):
 		logging.info(f"Starting poll for submissions for {self.me.name}")
@@ -69,7 +72,9 @@ class StreamPolling(object):
 				reddit_data: RedditData = self.prompt_handler.handle_comment(comment)
 				prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
 				q = {'id': comment.id, 'name': self.me.name, 'prompt': prompt, 'type': 'comment'}
-				self.queue.put(q)
+				m = json.dumps(q)
+				self.message_broker.put_message("message-generator", m)
+				# self.queue.put(q)
 				return
 
 			else:
@@ -94,7 +99,9 @@ class StreamPolling(object):
 			reddit_data: RedditData = self.prompt_handler.handle_submission(submission)
 			prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
 			q = {'id': submission.id, 'name': self.me.name, 'prompt': prompt, 'type': 'submission'}
-			self.queue.put(q)
+			m = json.dumps(q)
+			self.message_broker.put_message("message-generator", m)
+			# self.queue.put(q)
 			return
 
 		except Exception as e:

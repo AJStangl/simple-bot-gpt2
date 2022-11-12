@@ -3,13 +3,13 @@ import random
 import time
 from multiprocessing import Process, Queue
 import gc
-
+import json
 import torch
 import praw
 from praw.reddit import Comment, Submission, Reddit, Subreddit
 
 from shared_code.text_generation.text.text_generation import ModelTextGenerator
-
+from shared_code.messaging.message_sender import MessageBroker
 
 class QueueHandler(object):
 	def __init__(self, comment_queue: Queue, reddit: Reddit, subreddit):
@@ -17,6 +17,7 @@ class QueueHandler(object):
 		self.reddit: Reddit = reddit
 		self.subreddit = subreddit
 		self.time_since_post = 60 * 60 * 4
+		self.message_broker = MessageBroker()
 
 	@staticmethod
 	def reply_to_thing(q):
@@ -103,15 +104,20 @@ class QueueHandler(object):
 		logging.info(f"Starting poll_for_reply")
 		while True:
 			try:
-				logging.debug(f"Number Of Items In Queue: {self.queue.qsize()}, processing next item")
-				q = self.queue.get()
-				if q:
+				# logging.debug(f"Number Of Items In Queue: {self.queue.qsize()}, processing next item")
+				# q = self.queue.get()
+				message = self.message_broker.get_message("message-generator")
+				if message:
+					content = message.content
+					q = json.loads(content)
+					logging.info(f"Processing Message: {q}")
 					p = Process(target=self.reply_to_thing, args=(q,), daemon=True)
 					p.start()
 					p.join()
+					self.message_broker.delete_message("message-generator", message)
 					logging.info(f"Finished Processing Queue Item")
 			finally:
-				time.sleep(10)
+				time.sleep(1)
 
 	def poll_for_submission_generation(self):
 		logging.info(f"Starting poll_for_submission_generation")

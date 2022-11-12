@@ -26,6 +26,7 @@ setup(
 			  'shared_code/handlers',
 			  'shared_code/models',
 			  'shared_code/tagging',
+			  'shared_code/messaging',
 			  'shared_code/text_generation',
 			  'shared_code/text_generation/text',
 			  'shared_code/text_generation/toxicity'],
