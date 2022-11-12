@@ -17,7 +17,7 @@ from shared_code.models.reddit_data import RedditData
 
 class StreamPolling(object):
 	def __init__(self, reddit: Reddit, subreddit: Subreddit, queue: Queue):
-		self.MAX_SLEEP_TIME = 60
+		self.MAX_SLEEP_TIME = 10
 		self.REPLY_SLEEP_TIME = 10
 		self.reddit: Reddit = reddit
 		self.subreddit = subreddit
