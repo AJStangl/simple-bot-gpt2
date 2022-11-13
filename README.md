@@ -100,12 +100,19 @@ data.
 Everything in this file is required:
 
 ```env
-PsqlUser="" // User name for psql instance
-PsqlPassword="" // Password for psql instance
-Foo-Bot-GPT2="D:\\models\\Foo-Bot" // Path to model for bot name Foo-Bot-GPT2
-Bar-Bot-GPT2="D:\\models\\Bar-Bot" // Path to model for bot name Bar-Bot-GPT2
-Baz-Bot="D:\\models\\Baz-Bot" // Path to model for bot name Baz-Bot
-TriggerWords="I Should reply if I see this sentence,hi" // trigger words split on comma   
+PsqlUser="" // The username for your psql database
+PsqlPassword="" // The password for your psql database
+AllowSubmissions="CoopAndPabloPlayHouse:4" // Not Currently supported, but specified time to create a new submission and where
+// Each both that is run will need to be specified here: 
+SpezBotGPT="/models/spez" // Model path to bot 
+KimmieBotGPT="/models/Kimmie" // Model path to bot 
+SportsFanBotGhostGPT="/models/SportsFanBotGhostGPT" // Model path to bot
+LauraBotGPT="/models/GusterIs4Lovers" // Model path to bot
+AustinBotGPT="/models/path" // Model path to bot
+TriggerWords="Foo,Bar,Baz" // List of words that will force the bot to talk
+BannedWords="Casey,[removed],[deleted]" // List of banned words to not reply with
+ReplyThreshold="10" // The threshold for the bot to reply
+AzureStorageConnectionString="" // Required To Use. Message me if you want to know how to run this all as a single process without azure. Otherwise, use an emulator
 ```
 
 In the above we have 3 model paths. Each of these env names must **exactly** match the bot name found in the `praw.ini` sections.
@@ -123,10 +130,10 @@ stuff
 stuff 
 ```
 
-Both of these names must match the invocation of the run-bot. So in this example, if we wanted to run Foo-Bot-GPT2:
+Both of these names must match the invocation of the run-multi-bot. So in this example, if we wanted to run Foo-Bot-GPT2:
 
 ```bash
-simple-bot-gpt2 run-bot --bot-name="Foo-Bot-GPT2" --sub-reddit="CoopAndPabloPlayHouse" --reply-rate="9000"
+simple-bot-gpt2 run-multi-bot --bot-names="Foo-Bot-GPT2" --sub-reddit="CoopAndPabloPlayHouse" --reply-rate="10"
 ```
 
 This will start the `Foo-Bot-GPT2` reddit account to reply to text on `CoopAndPabloPlayHouse` using the model
@@ -154,7 +161,9 @@ Options:
 Commands:
   collect-data
   create-training
-  run-bot
+  run-message-processor
+  run-multi-bot
+
 ```
 
 Each command can have the help flag further specified to see the full set of options for each command:
@@ -162,7 +171,7 @@ Each command can have the help flag further specified to see the full set of opt
 Example:
 
 ```bash
-simple-bot-gpt2 run-bot --help
+simple-bot-gpt2 run-multi-bot --help
 ```
 
 ```
@@ -175,6 +184,13 @@ Options:
   --help             Show this message and exit.
 ```
 
+This repository also contains 2 key components independent to be run independently.
+- `run-message-processor` - This is a simple message processor that can be used to process messages from a queue.
+- `run-multi-bot` - This is a simple multi-threaded bot that can be used to run multiple bots at once.
+
+The `run-multi-bot` will poll for submissions and comments from specified reddits and send them to a queue for processing.
+The `run-message-processor` will then process the messages from the queue and reply to them.
+- This helps distribute the load of the bot and allows for multiple bots to be run at once.
 
 Fine-Tuning Guide
 ---
