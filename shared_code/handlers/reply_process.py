@@ -27,6 +27,7 @@ class ReplyProcess:
 					logging.info(f"Processing Message: {q}")
 					p = Process(target=self.reply_to_thing, args=(q,), daemon=True)
 					p.start()
+					self.message_broker.delete_message("message-generator", message)
 					p.join()
 					logging.info(f"Finished Processing Queue Item")
 			finally:
@@ -47,8 +48,16 @@ class ReplyProcess:
 			generator = ModelTextGenerator(name, torch.cuda.is_available())
 			instance = praw.Reddit(site_name=name)
 			if thing_type == "comment":
-				text, raw_text = generator.generate_text(prompt)
 				comment: Comment = instance.comment(id=thing_id)
+				submission: Submission = comment.submission
+				if submission.locked:
+					logging.info(f"Submission is locked, skipping")
+					return
+				if submission.num_comments > 300:
+					logging.info(f"Comment Has More Than 300 Comments, Skipping")
+					return
+
+				text, raw_text = generator.generate_text(prompt)
 				reply = comment.reply(body=text)
 				if reply:
 					logging.info(f"Successfully replied to comment {thing_id} -- with {text}")
@@ -58,8 +67,11 @@ class ReplyProcess:
 					return
 
 			if thing_type == "submission":
-				text, raw_text = generator.generate_text(prompt)
 				submission: Submission = instance.submission(id=thing_id)
+				if submission.locked:
+					logging.info(f"Submission is locked, skipping")
+					return
+				text, raw_text = generator.generate_text(prompt)
 				reply = submission.reply(body=text)
 				if reply:
 					logging.info(f"Successfully replied to submission {thing_id} ==	")
