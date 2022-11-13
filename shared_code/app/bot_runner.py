@@ -1,6 +1,8 @@
 import logging
 import time
+
 from shared_code.bot.reddit_bot import RedditBot
+from shared_code.bot.reddit_bot_processor import RedditBotProcessor
 
 
 class BotRunner:
@@ -23,4 +25,23 @@ class BotRunner:
 		except KeyboardInterrupt:
 			logging.info('Shutdown')
 			map(lambda x: x.stop(), bots)
+			exit(0)
+
+	@staticmethod
+	def run_process(thread_count: int = 1):
+		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
+		logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
+		procs = []
+		for i in range(thread_count):
+			process = RedditBotProcessor(f"Reply-Thread-{i}")
+			process.daemon = True
+			process.run()
+			procs.append(process)
+			time.sleep(10)
+		try:
+			while True:
+				time.sleep(5)
+		except KeyboardInterrupt:
+			logging.info('Shutdown')
+			map(lambda x: x.stop(), procs)
 			exit(0)

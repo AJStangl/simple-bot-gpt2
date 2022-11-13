@@ -24,15 +24,18 @@ class RedditBot(threading.Thread):
 		super().__init__(name=bot_name, daemon=True)
 		self.reddit: Reddit = praw.Reddit(site_name=bot_name)
 		self.subreddit: Subreddit = self.reddit.subreddit(subreddit)
-		# Threads
+
+		# Threads - Polling
 		self.poll_for_submissions_thread = threading.Thread(target=self.poll_for_submissions, args=(), daemon=True, name=bot_name)
 		self.poll_for_comments_thread = threading.Thread(target=self.poll_for_comments, args=(), daemon=True, name=bot_name)
 
+		# Threads - Queue
 		# self.poll_for_submission_queue_thread = threading.Thread(target=self.poll_for_submission_queue, args=(), daemon=True, name=bot_name)
 
-		self.poll_for_reply_queue_thread_1 = threading.Thread(target=self.poll_for_reply_queue, args=(), daemon=True, name=bot_name)
-		self.poll_for_reply_queue_thread_2 = threading.Thread(target=self.poll_for_reply_queue, args=(), daemon=True, name=bot_name)
-		self.poll_for_reply_queue_thread_3 = threading.Thread(target=self.poll_for_reply_queue, args=(), daemon=True, name=bot_name)
+		# Threads - Distributed Queue
+		# self.poll_for_reply_queue_thread_1 = threading.Thread(target=self.poll_for_reply_queue, args=(), daemon=True, name=bot_name)
+		# self.poll_for_reply_queue_thread_2 = threading.Thread(target=self.poll_for_reply_queue, args=(), daemon=True, name=bot_name)
+		# self.poll_for_reply_queue_thread_3 = threading.Thread(target=self.poll_for_reply_queue, args=(), daemon=True, name=bot_name)
 
 		# Queues
 		self.comment_queue = Queue()
@@ -58,9 +61,9 @@ class RedditBot(threading.Thread):
 		self.poll_for_submissions_thread.start()
 		self.poll_for_comments_thread.start()
 		# self.poll_for_submission_queue_thread.start()
-		self.poll_for_reply_queue_thread_1.start()
-		self.poll_for_reply_queue_thread_2.start()
-		self.poll_for_reply_queue_thread_3.start()
+		# self.poll_for_reply_queue_thread_1.start()
+		# self.poll_for_reply_queue_thread_2.start()
+		# self.poll_for_reply_queue_thread_3.start()
 
 	# noinspection PyMethodMayBeStatic
 	def stop(self):

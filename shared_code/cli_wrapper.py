@@ -5,10 +5,9 @@ import time
 import click
 from dotenv import load_dotenv
 
-from shared_code.app.bot_runner import BotRunner
+from shared_code.app.bot_runner import BotRunner, RedditBotProcessor
 from shared_code.app.generate_training_data import TrainingDataGenerator
 from shared_code.app.reddit_data_collection import Collector
-from shared_code.bot.reddit_bot import RedditBot
 
 load_dotenv()
 
@@ -61,7 +60,13 @@ def create_training(redditor: str):
 	TrainingDataGenerator().run(redditor.split(","))
 
 
-cli = click.CommandCollection(sources=[cli1, cli2, cli3])
+@cli4.command()
+@click.option("--threads", prompt='number of threads to run', default=1)
+def run_message_processor(threads: int):
+	BotRunner().run_process(thread_count=threads)
+
+
+cli = click.CommandCollection(sources=[cli1, cli2, cli3, cli4])
 
 if __name__ == '__main__':
 	cli()

@@ -118,7 +118,6 @@ class QueueHandler(object):
 					p = Process(target=self.reply_to_thing, args=(q,), daemon=True)
 					p.start()
 					p.join()
-					# self.message_broker.delete_message("message-generator", message)
 					logging.info(f"Finished Processing Queue Item")
 			finally:
 				time.sleep(10)
