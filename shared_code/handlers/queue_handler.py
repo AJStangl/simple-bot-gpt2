@@ -1,15 +1,17 @@
+import gc
+import json
 import logging
 import random
 import time
 from multiprocessing import Process, Queue
-import gc
-import json
-import torch
+
 import praw
+import torch
 from praw.reddit import Comment, Submission, Reddit, Subreddit
 
-from shared_code.text_generation.text.text_generation import ModelTextGenerator
 from shared_code.messaging.message_sender import MessageBroker
+from shared_code.text_generation.text.text_generation import ModelTextGenerator
+
 
 class QueueHandler(object):
 	def __init__(self, comment_queue: Queue, reddit: Reddit, subreddit):
@@ -22,7 +24,8 @@ class QueueHandler(object):
 	@staticmethod
 	def reply_to_thing(q):
 		import logging
-		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
+		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s',
+							level=logging.INFO)
 		logging.info(f"Call To Create New Reply To Comment")
 		generator = None
 		instance = None
@@ -66,7 +69,8 @@ class QueueHandler(object):
 	@staticmethod
 	def create_new_submission(q):
 		import logging
-		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
+		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s',
+							level=logging.INFO)
 		logging.info(f"Call To Create New Submission")
 		instance = None
 		generator = None
@@ -114,10 +118,10 @@ class QueueHandler(object):
 					p = Process(target=self.reply_to_thing, args=(q,), daemon=True)
 					p.start()
 					p.join()
-					self.message_broker.delete_message("message-generator", message)
+					# self.message_broker.delete_message("message-generator", message)
 					logging.info(f"Finished Processing Queue Item")
 			finally:
-				time.sleep(1)
+				time.sleep(10)
 
 	def poll_for_submission_generation(self):
 		logging.info(f"Starting poll_for_submission_generation")
@@ -126,15 +130,6 @@ class QueueHandler(object):
 			try:
 				if self.time_since_post <= 0:
 					continue
-					# message = self.create_submission_message(post_type=post_types)
-					# for m in message:
-					# 	# p = Process(target=self.create_new_submission, args=(m,), daemon=True)
-					# 	# p.start()
-					# 	# p.join()
-					# 	# if p.exitcode == 0:
-					# 		# logging.info(f"::p.exitcode: {p.exitcode}")
-					# 	# self.time_since_post = 60 * 60 * 4
-					# continue
 				else:
 					continue
 			finally:
@@ -151,4 +146,3 @@ class QueueHandler(object):
 				"type": post_type
 			}
 			yield foo
-
