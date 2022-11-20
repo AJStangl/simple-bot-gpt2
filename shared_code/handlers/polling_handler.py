@@ -10,6 +10,7 @@ from praw import Reddit
 from praw.models import Redditor, Submission, Comment, Subreddit
 from praw.models.reddit.base import RedditBase
 
+from shared_code.handlers.reply_logic import ReplyProbability
 from shared_code.messaging.message_sender import MessageBroker
 from shared_code.handlers.tagging_handler import TaggingHandler
 from shared_code.models.reddit_data import RedditData
@@ -28,6 +29,7 @@ class StreamPolling(object):
 		self.banned_words: [str] = [item.lower() for item in os.environ["BannedWords"].split(",")]
 		self.queue = queue
 		self.message_broker: MessageBroker = MessageBroker()
+		# self.reply_probability: ReplyProbability = ReplyProbability(self.me)
 
 	def poll_for_submissions(self):
 		logging.info(f"Starting poll for submissions for {self.me.name}")
@@ -74,7 +76,6 @@ class StreamPolling(object):
 				q = {'id': comment.id, 'name': self.me.name, 'prompt': prompt, 'type': 'comment'}
 				m = json.dumps(q)
 				self.message_broker.put_message("message-generator", m)
-				# self.queue.put(q)
 				return
 
 			else:
@@ -101,7 +102,6 @@ class StreamPolling(object):
 			q = {'id': submission.id, 'name': self.me.name, 'prompt': prompt, 'type': 'submission'}
 			m = json.dumps(q)
 			self.message_broker.put_message("message-generator", m)
-			# self.queue.put(q)
 			return
 
 		except Exception as e:
@@ -132,6 +132,14 @@ class StreamPolling(object):
 		if self._get_grand_parent(comment) == self.me.name:
 			return random.randint(1, 2) == 2
 
+		# reply_probability: float = self.reply_probability.calculate_reply_probability(comment)
+		# random_value = random.random()
+		#
+		# if random_value < reply_probability:
+		# 	logging.info(f"{comment} Random value {random_value:.3f} is < reply probability {(reply_probability):.3f}. Starting a reply..")
+		# 	return True
+		# else:
+		# 	logging.info(f"{comment} Random value {random_value:.3f} is not < reply probability {(reply_probability):.3f}. No reply.. :(")
 		if random_reply_value == random_expected_valued:
 			logging.info(f"Random Reply Value: {random_reply_value} and Expected Value: {random_expected_valued}")
 			return True
