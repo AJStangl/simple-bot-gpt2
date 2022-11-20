@@ -96,7 +96,7 @@ class ReplyProcess:
 					content = message.content
 					q = json.loads(content)
 					logging.info(f"Processing Message: {q}")
-					p = Process(target=self.reply_to_thing, args=(q,), daemon=True)
+					p = Process(target=self.create_new_submission, args=(q,), daemon=True)
 					p.start()
 					self.message_broker.delete_message("submission-generator", message)
 					p.join()
