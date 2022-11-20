@@ -128,15 +128,17 @@ class PushShiftClient:
 			logger.error(f":: Exception in get_comment_by_id for {author}\t{e}")
 			raise requests.RequestException("Error in get_author_comments")
 
-	def get_author_submissions(self, author, fields=None) -> Union[None, dict]:
-		request_address = f"{self.__base_address}/submission/search/?author={author}&sort=desc&sort_type=created_utc"
+	def get_author_submissions(self, author, before, fields=None) -> Union[None, dict]:
+		request_address = f"{self.__base_address}/submission/search/?author={author}&sort=desc&sort_type=created_utc&limit=100"
+		if before:
+			request_address += f"&before={before}"
 		if fields:
 			request_address += f"&fields={fields}"
 		try:
 			return self.__handle_response(self.__session.get(request_address))
 		except Exception as e:
 			logger.error(f":: Exception in get_author_submissions for {author}\t{e}")
-			return None
+			raise requests.RequestException("Error in get_author_submissions")
 
 	def __handle_response(self, response: requests.Response, do_format=True) -> [{}]:
 		"""
@@ -278,3 +280,24 @@ class PushShiftClient:
 		row.CommentScore = data_point.comment_score
 
 		return row
+
+	def handle_submission(self, submission: dict) -> TrainingDataRow:
+		row = TrainingDataRow()
+		row.Subreddit = submission.get("subreddit")
+		row.SubmissionId = submission.get("id")
+		row.SubmissionTitle = submission.get("title")
+		row.SubmissionAuthor = submission.get("author")
+		if submission.get("is_self"):
+			row.submission_content = submission.get('selftext')
+		else:
+			row.submission_content = submission.get("url")
+		row.ParentId = None
+		row.ParentAuthor = None
+		row.ParentBody = None
+		row.CommentId = submission.get("id")
+		row.CommentBody = None
+		row.CommentAuthor = None
+		row.GrandParentAuthor = None
+		row.CommentScore = None
+		return row
+

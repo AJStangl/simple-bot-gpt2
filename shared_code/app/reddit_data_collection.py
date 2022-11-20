@@ -54,3 +54,37 @@ class Collector:
 			logger.info("Continuing...")
 		logger.info("Complete")
 		return before
+
+	def get_author_submissions(self, author_name):
+		before = None
+		i = 0
+		while True:
+			try:
+				submissions: dict = self.client.get_author_submissions(author_name, before=before)
+			except requests.RequestException as e:
+				logger.error(e)
+				time.sleep(10)
+				continue
+			if not submissions:
+				break
+			all_submission_ids: [str] = [submission.get('id') for submission in submissions]
+			found_submission_ids = self.context.search_by_id(all_submission_ids, self.session)
+			remaining_submissions_ids = [item for item in all_submission_ids if item not in found_submission_ids]
+			logger.info(f"{len(remaining_submissions_ids)} from current batch {len(submissions)} remains...")
+			for submission in submissions:
+				before = submission['created_utc']
+				if submission.get('id') not in remaining_submissions_ids:
+					continue
+				else:
+					data_row: TrainingDataRow = self.client.handle_submission(submission)
+					result = self.context.add(data_row, self.session)
+					if result is None:
+						logger.info(f"Added {i} rows")
+						i += 1
+					else:
+						logger.info(f"Nothing was updated for Comment {data_row.CommentId}")
+						continue
+					time.sleep(1)
+			logger.info("Continuing...")
+		logger.info("Complete")
+		return before
