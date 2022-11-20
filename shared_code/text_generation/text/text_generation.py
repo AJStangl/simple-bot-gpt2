@@ -27,7 +27,7 @@ class ModelTextGenerator:
 		}
 		self.devices = ['cuda:0', 'cuda:1']
 		self.model_path: str = os.environ[f"{bot_name}"]
-		self.model = LanguageGenerationModel("gpt2", self.model_path, use_cuda=use_cuda)
+		self.model = LanguageGenerationModel("gpt2", self.model_path, use_cuda=use_cuda, cuda_device=random.randint(0, 1))
 		self.detoxify = Detoxify('unbiased-small', device=torch.device(random.choice(self.devices) if use_cuda else 'cpu'))
 		self.image_handler: ImageHandler = ImageHandler()
 
@@ -111,6 +111,9 @@ class ModelTextGenerator:
 						body = re.findall(text_body_regex, result)[0]
 						clean_body = self.clean_string(body)
 						clean_title = self.clean_string(title)
+
+						if clean_body.startswith("http") or clean_body.startswith("www"):
+							continue
 						if self._is_not_none_or_empty(clean_body, clean_title):
 							result = {
 								"title": clean_title,

@@ -29,6 +29,10 @@ class SubmissionCreationHandler(object):
 					if should_send == 0:
 						m = json.dumps(random_message)
 						self.message_broker.put_message("submission-generator", m)
+						self.time_since_post -= 30
+						continue
+					else:
+						continue
 				else:
 					self.time_since_post -= 30
 					continue
