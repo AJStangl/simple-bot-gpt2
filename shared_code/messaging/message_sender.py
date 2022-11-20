@@ -11,8 +11,8 @@ class MessageBroker(object):
 		self.connection_string: str = os.environ["AzureStorageConnectionString"]
 		self.service: QueueServiceClient = QueueServiceClient.from_connection_string(self.connection_string, encode_policy=TextBase64EncodePolicy())
 		self.queues: dict = {
-			"generate": "message-generator",
-			"send": "message-sender"
+			"comment": "message-generator",
+			"submission": "submission-generator"
 		}
 
 	def put_message(self, queue_name: str, content) -> QueueMessage:

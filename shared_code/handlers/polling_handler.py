@@ -3,21 +3,18 @@ import logging
 import os
 import random
 import time
-from concurrent.futures import ThreadPoolExecutor
-from multiprocessing.queues import Queue
 
 from praw import Reddit
 from praw.models import Redditor, Submission, Comment, Subreddit
 from praw.models.reddit.base import RedditBase
 
-from shared_code.handlers.reply_logic import ReplyProbability
-from shared_code.messaging.message_sender import MessageBroker
 from shared_code.handlers.tagging_handler import TaggingHandler
+from shared_code.messaging.message_sender import MessageBroker
 from shared_code.models.reddit_data import RedditData
 
 
 class StreamPolling(object):
-	def __init__(self, reddit: Reddit, subreddit: Subreddit, queue: Queue):
+	def __init__(self, reddit: Reddit, subreddit: Subreddit):
 		self.MAX_SLEEP_TIME = 10
 		self.REPLY_SLEEP_TIME = 10
 		self.reddit: Reddit = reddit
@@ -27,7 +24,6 @@ class StreamPolling(object):
 		self.reply_threshold = int(os.environ["ReplyThreshold"])
 		self.tigger_words: [str] = [item.lower() for item in os.environ["TriggerWords"].split(",")]
 		self.banned_words: [str] = [item.lower() for item in os.environ["BannedWords"].split(",")]
-		self.queue = queue
 		self.message_broker: MessageBroker = MessageBroker()
 		# self.reply_probability: ReplyProbability = ReplyProbability(self.me)
 
@@ -148,20 +144,6 @@ class StreamPolling(object):
 			logging.debug(
 				f"Reply Value {random_reply_value} is not equal random value {self.reply_threshold}. Skipping...")
 			return False
-
-	@staticmethod
-	def _chain_listing_generators(*iterables):
-		"""
-		Special tool for chaining PRAW's listing generators, It joins the three iterables together.
-		:param iterables: Comment And Submission Streams
-		:return: Generator of Comments and Submissions
-		"""
-		for it in iterables:
-			for element in it:
-				if element is None:
-					break
-				else:
-					yield element
 
 	def _get_latest_submission(self):
 		return list(self.reddit.redditor(self.me.name).submissions.new(limit=1))

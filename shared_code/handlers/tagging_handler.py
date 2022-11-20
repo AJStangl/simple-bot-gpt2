@@ -1,6 +1,5 @@
 from typing import Optional
 
-import praw
 from praw import Reddit
 from praw.models import Comment, Redditor, Submission
 from praw.models.reddit.base import RedditBase

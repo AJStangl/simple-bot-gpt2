@@ -100,6 +100,7 @@ class ModelTextGenerator:
 			prompt: str = f"<|soss r/{sub}|><|sot|>"
 			while reply is None:
 				for text in self.model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False):
+					# noinspection PyBroadException
 					try:
 						if max_attempts == 0:
 							return {}

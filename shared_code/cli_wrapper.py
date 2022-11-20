@@ -1,11 +1,10 @@
 import logging
 import os
-import time
 
 import click
 from dotenv import load_dotenv
 
-from shared_code.app.bot_runner import BotRunner, RedditBotProcessor
+from shared_code.app.bot_runner import BotRunner
 from shared_code.app.generate_training_data import TrainingDataGenerator
 from shared_code.app.reddit_data_collection import Collector
 

@@ -281,7 +281,8 @@ class PushShiftClient:
 
 		return row
 
-	def handle_submission(self, submission: dict) -> TrainingDataRow:
+	@staticmethod
+	def handle_submission(submission: dict) -> TrainingDataRow:
 		row = TrainingDataRow()
 		row.Subreddit = submission.get("subreddit")
 		row.SubmissionId = submission.get("id")
