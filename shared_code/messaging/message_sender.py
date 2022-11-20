@@ -4,12 +4,12 @@ from azure.storage.queue import QueueMessage, QueueServiceClient, TextBase64Enco
 
 
 class MessageBroker(object):
-
 	logging.getLogger("azure.storage").setLevel(logging.WARNING)
 
 	def __init__(self):
 		self.connection_string: str = os.environ["AzureStorageConnectionString"]
-		self.service: QueueServiceClient = QueueServiceClient.from_connection_string(self.connection_string, encode_policy=TextBase64EncodePolicy())
+		self.service: QueueServiceClient = QueueServiceClient.from_connection_string(self.connection_string,
+																					 encode_policy=TextBase64EncodePolicy())
 		self.queues: dict = {
 			"comment": "message-generator",
 			"submission": "submission-generator"

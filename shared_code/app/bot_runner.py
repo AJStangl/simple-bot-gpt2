@@ -9,7 +9,8 @@ class BotRunner:
 
 	@staticmethod
 	def run_multi_bot(bot_names: [str], sub_reddit: str):
-		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
+		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s',
+							level=logging.INFO)
 		logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
 		bots = []
 		for bot_name in bot_names:
@@ -29,7 +30,8 @@ class BotRunner:
 
 	@staticmethod
 	def run_process(thread_count: int = 1):
-		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
+		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s',
+							level=logging.INFO)
 		logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
 		procs = []
 		for i in range(thread_count):

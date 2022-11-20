@@ -186,9 +186,9 @@ Options:
 
 This repository also contains 2 key components independent to be run independently.
 - `run-message-processor` - This is a simple message processor that can be used to process messages from a queue.
-- `run-multi-bot` - This is a simple multi-threaded bot that can be used to run multiple bots at once.
+- `run-multi-bot` - This is a simple multithreaded bot that can be used to run multiple bots at once.
 
-The `run-multi-bot` will poll for submissions and comments from specified reddits and send them to a queue for processing.
+The `run-multi-bot` will poll for submissions and comments from specified redits and send them to a queue for processing.
 The `run-message-processor` will then process the messages from the queue and reply to them.
 - This helps distribute the load of the bot and allows for multiple bots to be run at once.
 

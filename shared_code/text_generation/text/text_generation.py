@@ -97,7 +97,7 @@ class ModelTextGenerator:
 			reply = None
 			title_regex = r"<\|sot\|>(.+?)<\|eot\|>"
 			text_body_regex = r"<\|sost\|>(.+?)<\|eost\|>"
-			prompt: str = f"<|soss r/{sub}|><|sot|>"
+			prompt: str = f"<|ososs r/{sub}|><|sot|>"
 			while reply is None:
 				for text in self.model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False):
 					# noinspection PyBroadException
@@ -111,12 +111,16 @@ class ModelTextGenerator:
 						body = re.findall(text_body_regex, result)[0]
 						clean_body = self.clean_string(body)
 						clean_title = self.clean_string(title)
-						result = {
-							"title": clean_title,
-							"selftext": clean_body,
-							"type": "text"
-						}
-						return result
+						if self._is_not_none_or_empty(clean_body, clean_title):
+							result = {
+								"title": clean_title,
+								"selftext": clean_body,
+								"type": "text"
+							}
+							return result
+						else:
+							max_attempts -= 1
+							continue
 					except Exception:
 						max_attempts -= 1
 						continue
@@ -126,25 +130,40 @@ class ModelTextGenerator:
 
 	def _generate_link_post(self, sub: str) -> dict:
 		try:
-			reply = None
-			title_regex = r"<\|sot\|>(.+?)<\|eot\|>"
-			text_body_regex = r"<\|sost\|>(.+?)<\|eost\|>"
-			prompt: str = f"<|soss r/{sub}|><|sot|>"
+			max_attempt = 5
+			while max_attempt > 0:
+				generate_text_post = self._generate_text_post(sub)
+				clean_title = generate_text_post.get("title")
+				body = generate_text_post.get("selftext")
+				if body is None or clean_title is None:
+					logging.info("Failed to generate text post, trying again...")
+					max_attempt -= 1
+					continue
 
-			generate_text_post = self._generate_text_post(sub)
-			clean_title = generate_text_post.get("title")
-			body = generate_text_post.get("selftext")
+				image_url = self.image_handler.get_image_post(body=body)
 
-			image_url = ImageHandler().get_image_post(body=body)
-			result = {
-				"title": clean_title,
-				"url": image_url,
-				"type": "link"
-			}
-			return result
+				if self._is_not_none_or_empty(body, image_url):
+					result = {
+						"title": clean_title,
+						"url": image_url,
+						"type": "link"
+					}
+					return result
+				else:
+					logging.info("Failed to validate link submission, trying again...")
+					max_attempt -= 1
+					continue
 		finally:
 			torch.cuda.empty_cache()
 			gc.collect()
+
+	@staticmethod
+	def _is_not_none_or_empty(input_text_1: str, input_text_2: str) -> bool:
+		if input_text_1 is None or input_text_1 == "":
+			return False
+		if input_text_2 is None or input_text_2 == "":
+			return False
+		return True
 
 	@staticmethod
 	def clean_string(text) -> Optional[str]:

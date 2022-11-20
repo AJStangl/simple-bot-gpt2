@@ -37,8 +37,6 @@ class ReplyProcess:
 	def reply_to_thing(q: dict):
 		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
 		logging.info(f"Call To Create New Reply To Comment")
-		generator = None
-		instance = None
 		try:
 			logging.info(f"Starting New Process Language Generation Process")
 			name = q.get("name")
@@ -83,7 +81,6 @@ class ReplyProcess:
 			logging.info(f"Exception Occurred: {e} attempting to reply")
 			return
 		finally:
-			del generator, instance
 			torch.cuda.empty_cache()
 			gc.collect()
 
@@ -109,8 +106,6 @@ class ReplyProcess:
 		import logging
 		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
 		logging.info(f"Call To Create New Submission")
-		instance = None
-		generator = None
 		try:
 			logging.info(f"Call To Create New Submission")
 			bot_name = q.get("name")
@@ -137,6 +132,5 @@ class ReplyProcess:
 			logging.error(f":: Failed To Create New Submission: {e}")
 			return
 		finally:
-			del generator, instance
 			torch.cuda.empty_cache()
 			gc.collect()

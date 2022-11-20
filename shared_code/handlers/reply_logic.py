@@ -26,6 +26,7 @@ class ReplyProbability:
 		self._do_not_reply_bot_usernames: [str] = []
 		self._negative_word_list: [str] = []
 
+	# noinspection GrazieInspection
 	def calculate_reply_probability(self, praw_thing) -> float:
 		"""
 		Calculate the probability of replying to a given PRAW Thing
@@ -44,7 +45,7 @@ class ReplyProbability:
 			# Ignore comments/messages from Admins
 			return 0
 
-		# merge the text content into a single variable so it's easier to work with
+		# merge the text content into a single variable, so it's easier to work with
 		thing_text_content = ''
 		submission_link_flair_text = ''
 		submission_created_utc = None

@@ -13,7 +13,7 @@ class SubmissionCreationHandler(object):
 	def __init__(self, reddit: Reddit, subreddit):
 		self.reddit: Reddit = reddit
 		self.subreddit = subreddit
-		self.time_since_post = 0 # 1 hour
+		self.time_since_post = 0  # 1 hour
 		self.message_broker = MessageBroker()
 
 	def poll_for_submission_generation(self):
@@ -22,10 +22,12 @@ class SubmissionCreationHandler(object):
 		while True:
 			try:
 				if self.time_since_post <= 0:
-					self.time_since_post = 60 * 60
-					message = self.create_submission_message(post_type=post_types)
-					for elem in message:
-						m = json.dumps(elem)
+					self.time_since_post = 60 * 60 * 1
+					message = list(self.create_submission_message(post_type=post_types))
+					random_message = random.choice(message)
+					should_send = random.randint(1, 5)
+					if should_send == 0:
+						m = json.dumps(random_message)
 						self.message_broker.put_message("submission-generator", m)
 				else:
 					self.time_since_post -= 30
