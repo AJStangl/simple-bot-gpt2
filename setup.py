@@ -25,6 +25,7 @@ setup(
 			  'shared_code/fine_tuning/tensor_encoding',
 			  'shared_code/handlers',
 			  'shared_code/models',
+			  'shared_code/process',
 			  'shared_code/tagging',
 			  'shared_code/messaging',
 			  'shared_code/text_generation',

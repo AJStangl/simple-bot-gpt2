@@ -8,6 +8,7 @@ from praw import Reddit
 from praw.models import Redditor, Submission, Comment, Subreddit
 from praw.models.reddit.base import RedditBase
 
+from shared_code.handlers.reply_logic import ReplyProbability
 from shared_code.tagging.tagging_handler import TaggingHandler
 from shared_code.messaging.message_sender import MessageBroker
 from shared_code.models.reddit_data import RedditData
@@ -25,7 +26,6 @@ class StreamPolling(object):
 		self.tigger_words: [str] = [item.lower() for item in os.environ["TriggerWords"].split(",")]
 		self.banned_words: [str] = [item.lower() for item in os.environ["BannedWords"].split(",")]
 		self.message_broker: MessageBroker = MessageBroker()
-		# self.reply_probability: ReplyProbability = ReplyProbability(self.me)
 
 	def poll_for_submissions(self):
 		logging.info(f"Starting poll for submissions for {self.me.name}")
@@ -128,6 +128,15 @@ class StreamPolling(object):
 		if self._get_grand_parent(comment) == self.me.name:
 			return random.randint(1, 2) == 2
 
+		reply_probability = ReplyProbability(self.me).calculate_reply_probability(comment)
+		random_value = random.random()
+		if random_value < reply_probability:
+			logging.info(f"{comment} Random value {random_value:.3f} is < reply probability {(reply_probability):.3f}. Starting a reply...")
+			return True
+		else:
+			logging.info(f"{comment} Random value {random_value:.3f} is not < reply probability {(reply_probability):.3f}. No reply...")
+			return False
+
 		# reply_probability: float = self.reply_probability.calculate_reply_probability(comment)
 		# random_value = random.random()
 		#
@@ -136,14 +145,14 @@ class StreamPolling(object):
 		# 	return True
 		# else:
 		# 	logging.info(f"{comment} Random value {random_value:.3f} is not < reply probability {(reply_probability):.3f}. No reply.. :(")
-		if random_reply_value == random_expected_valued:
-			logging.info(f"Random Reply Value: {random_reply_value} and Expected Value: {random_expected_valued}")
-			return True
-
-		else:
-			logging.debug(
-				f"Reply Value {random_reply_value} is not equal random value {self.reply_threshold}. Skipping...")
-			return False
+		# if random_reply_value == random_expected_valued:
+		# 	logging.info(f"Random Reply Value: {random_reply_value} and Expected Value: {random_expected_valued}")
+		# 	return True
+		#
+		# else:
+		# 	logging.debug(
+		# 		f"Reply Value {random_reply_value} is not equal random value {self.reply_threshold}. Skipping...")
+		# 	return False
 
 	def _get_latest_submission(self):
 		return list(self.reddit.redditor(self.me.name).submissions.new(limit=1))
