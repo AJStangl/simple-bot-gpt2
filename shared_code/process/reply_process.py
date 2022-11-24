@@ -37,6 +37,7 @@ class ReplyProcess:
 	def reply_to_thing(q: dict):
 		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
 		logging.info(f"Call To Create New Reply To Comment Reply")
+		max_comments = 500
 		try:
 			name = q.get("name")
 			prompt = q.get("prompt")
@@ -50,14 +51,14 @@ class ReplyProcess:
 				if submission.locked:
 					logging.info(f"Submission is locked, skipping")
 					return
-				if submission.num_comments > 500:
-					logging.info(f"Comment Has More Than 300 Comments, Skipping")
+				if submission.num_comments > max_comments:
+					logging.info(f"Comment Has More Than {max_comments} Comments, Skipping")
 					return
 
 				text, raw_text = generator.generate_text(prompt)
 				reply = comment.reply(body=text)
 				if reply:
-					logging.info(f"Successfully replied to comment {thing_id} -- with {text}")
+					logging.info(f"Successfully replied to comment {thing_id}")
 					return
 				else:
 					logging.info(f"Failed to reply to comment {thing_id}")
@@ -71,7 +72,7 @@ class ReplyProcess:
 				text, raw_text = generator.generate_text(prompt)
 				reply = submission.reply(body=text)
 				if reply:
-					logging.info(f"Successfully replied to submission {thing_id} ==	")
+					logging.info(f"Successfully replied to submission {thing_id}")
 					return
 				else:
 					logging.info(f"Failed To Reply To Submission")

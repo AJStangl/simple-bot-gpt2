@@ -105,8 +105,6 @@ class StreamPolling(object):
 			return
 
 	def _should_reply(self, comment: Comment) -> bool:
-		# random_reply_value = random.randint(0, self.reply_threshold)
-		# random_expected_valued = random.randint(0, self.reply_threshold)
 		body = comment.body or ""
 		triggered: int = len([item for item in self.tigger_words if body.lower().__contains__(item.lower())])
 		if triggered > 0:
@@ -122,8 +120,12 @@ class StreamPolling(object):
 
 		submission_author: Redditor = submission.author
 
+		if submission.num_comments > 400:
+			logging.info(f"Submission has too many comments")
+			return False
+
 		if submission_author.name == self.me.name:
-			return True
+			return random.randint(1, 2) == 2
 
 		if self._get_grand_parent(comment) == self.me.name:
 			return random.randint(1, 2) == 2
@@ -131,28 +133,11 @@ class StreamPolling(object):
 		reply_probability = ReplyProbability(self.me).calculate_reply_probability(comment)
 		random_value = random.random()
 		if random_value < reply_probability:
-			logging.info(f"{comment} Random value {random_value:.3f} is < reply probability {(reply_probability):.3f}. Starting a reply...")
+			logging.info(f"{comment} Random Reply Value: {random_value:.3f} Is > Calculated Reply Probability: {(reply_probability):.3f} - Starting Reply")
 			return True
 		else:
-			logging.info(f"{comment} Random value {random_value:.3f} is not < reply probability {(reply_probability):.3f}. No reply...")
+			logging.info(f"{comment} Random Reply Value: {random_value:.3f} Is < Calculated Reply Probability: {(reply_probability):.3f} - No Reply")
 			return False
-
-		# reply_probability: float = self.reply_probability.calculate_reply_probability(comment)
-		# random_value = random.random()
-		#
-		# if random_value < reply_probability:
-		# 	logging.info(f"{comment} Random value {random_value:.3f} is < reply probability {(reply_probability):.3f}. Starting a reply..")
-		# 	return True
-		# else:
-		# 	logging.info(f"{comment} Random value {random_value:.3f} is not < reply probability {(reply_probability):.3f}. No reply.. :(")
-		# if random_reply_value == random_expected_valued:
-		# 	logging.info(f"Random Reply Value: {random_reply_value} and Expected Value: {random_expected_valued}")
-		# 	return True
-		#
-		# else:
-		# 	logging.debug(
-		# 		f"Reply Value {random_reply_value} is not equal random value {self.reply_threshold}. Skipping...")
-		# 	return False
 
 	def _get_latest_submission(self):
 		return list(self.reddit.redditor(self.me.name).submissions.new(limit=1))
