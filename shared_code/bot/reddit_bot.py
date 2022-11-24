@@ -6,7 +6,7 @@ from praw import Reddit
 from praw.models import Subreddit
 
 from shared_code.handlers.polling_handler import StreamPolling
-from shared_code.handlers.submission_queue_handler import SubmissionCreationHandler
+from shared_code.handlers.submission_queue_sender import SubmissionCreationHandler
 
 
 class RedditBot(threading.Thread):

@@ -98,7 +98,6 @@ class ReplyProcess:
 					self.message_broker.delete_message("submission-generator", message)
 					p.join()
 					logging.info(f"Finished Processing Submission Queue Item")
-					time.sleep(60 * 60)
 			finally:
 				time.sleep(10)
 

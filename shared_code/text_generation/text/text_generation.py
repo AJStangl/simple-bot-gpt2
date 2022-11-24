@@ -10,7 +10,7 @@ import torch
 import ftfy
 from detoxify import Detoxify
 from simpletransformers.language_generation import LanguageGenerationModel
-from shared_code.handlers.image_handler import ImageHandler
+from shared_code.handlers.image_searching import ImageHandler
 
 
 class ModelTextGenerator:

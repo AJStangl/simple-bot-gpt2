@@ -2,7 +2,7 @@ import logging
 import sys
 import threading
 
-from shared_code.handlers.reply_process import ReplyProcess
+from shared_code.process.reply_process import ReplyProcess
 
 
 class RedditBotProcessor(threading.Thread):

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session, Query
 
 from shared_code.fine_tuning.persistence.context import Context
 from shared_code.models.training_row import TrainingDataRow
-from shared_code.handlers.tagging_handler import TaggingHandler
+from shared_code.tagging.tagging_handler import TaggingHandler
 from shared_code.models.reddit_data import RedditData
 
 load_dotenv()

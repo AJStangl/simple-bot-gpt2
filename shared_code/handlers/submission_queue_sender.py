@@ -1,6 +1,4 @@
-import json
 import logging
-import random
 import time
 
 from praw.reddit import Reddit
@@ -15,25 +13,27 @@ class SubmissionCreationHandler(object):
 		self.subreddit = subreddit
 		self.time_since_post = 0
 		self.message_broker = MessageBroker()
-		self.hour = 3600
 
 	def poll_for_submission_generation(self):
 		logging.info(f"Starting poll for submission generation")
 		while True:
 			try:
-				post_types = random.choice(["text", "link"])
-				messages = list(self.create_submission_message(post_type=post_types))
-				for message in messages:
-					m = json.dumps(message)
-					self.message_broker.put_message("submission-generator", m)
-					continue
-				else:
-					self.time_since_post -= self.hour
-					time.sleep(self.hour)
-					continue
+				time.sleep(60)
+				continue
+				# for submission in self.reddit.subreddit(self.subreddit).new(limit=10):
+				# 	minutes_since_post = (time.time() - submission.created_utc) / 60
+				# 	if minutes_since_post > random.randint(60, 60 * 4):
+				# 		post_types = random.choice(["text", "link"])
+				# 		messages = list(self.create_submission_message(post_types))
+				# 		for message in messages:
+				# 			m = json.dumps(message)
+				# 			self.message_broker.put_message("submission-generator", m)
+			except Exception as e:
+				logging.info(f"An exception has occurred {e}")
+				time.sleep(60)
+				continue
 			finally:
-				self.time_since_post -= self.hour
-				time.sleep(self.hour)
+				time.sleep(60)
 				continue
 
 	def create_submission_message(self, post_type):

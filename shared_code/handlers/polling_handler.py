@@ -8,7 +8,7 @@ from praw import Reddit
 from praw.models import Redditor, Submission, Comment, Subreddit
 from praw.models.reddit.base import RedditBase
 
-from shared_code.handlers.tagging_handler import TaggingHandler
+from shared_code.tagging.tagging_handler import TaggingHandler
 from shared_code.messaging.message_sender import MessageBroker
 from shared_code.models.reddit_data import RedditData
 
