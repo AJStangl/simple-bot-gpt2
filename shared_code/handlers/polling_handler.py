@@ -22,7 +22,7 @@ class StreamPolling(object):
 		self.subreddit = subreddit
 		self.me: Redditor = self.reddit.user.me()
 		self.prompt_handler: TaggingHandler = TaggingHandler(self.reddit)
-		self.reply_threshold = int(os.environ["ReplyThreshold"])
+		# self.reply_threshold = int(os.environ["ReplyThreshold"])
 		self.tigger_words: [str] = [item.lower() for item in os.environ["TriggerWords"].split(",")]
 		self.banned_words: [str] = [item.lower() for item in os.environ["BannedWords"].split(",")]
 		self.message_broker: MessageBroker = MessageBroker()
@@ -105,8 +105,8 @@ class StreamPolling(object):
 			return
 
 	def _should_reply(self, comment: Comment) -> bool:
-		random_reply_value = random.randint(0, self.reply_threshold)
-		random_expected_valued = random.randint(0, self.reply_threshold)
+		# random_reply_value = random.randint(0, self.reply_threshold)
+		# random_expected_valued = random.randint(0, self.reply_threshold)
 		body = comment.body or ""
 		triggered: int = len([item for item in self.tigger_words if body.lower().__contains__(item.lower())])
 		if triggered > 0:

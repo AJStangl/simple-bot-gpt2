@@ -17,14 +17,14 @@ class ReplyProcess:
 		self.message_broker = MessageBroker()
 
 	def poll_for_reply(self):
-		logging.info(f"Starting poll_for_reply")
+		logging.info(f"Starting Poll For Reply")
 		while True:
 			try:
 				message = self.message_broker.get_message("message-generator")
 				if message:
 					content = message.content
 					q = json.loads(content)
-					logging.info(f"Processing Message: {q}")
+					logging.info(f"Processing Message For Reply")
 					p = Process(target=self.reply_to_thing, args=(q,), daemon=True)
 					p.start()
 					self.message_broker.delete_message("message-generator", message)
@@ -36,9 +36,8 @@ class ReplyProcess:
 	@staticmethod
 	def reply_to_thing(q: dict):
 		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
-		logging.info(f"Call To Create New Reply To Comment")
+		logging.info(f"Call To Create New Reply To Comment Reply")
 		try:
-			logging.info(f"Starting New Process Language Generation Process")
 			name = q.get("name")
 			prompt = q.get("prompt")
 			thing_id = q.get("id")
@@ -51,7 +50,7 @@ class ReplyProcess:
 				if submission.locked:
 					logging.info(f"Submission is locked, skipping")
 					return
-				if submission.num_comments > 300:
+				if submission.num_comments > 500:
 					logging.info(f"Comment Has More Than 300 Comments, Skipping")
 					return
 
@@ -85,14 +84,14 @@ class ReplyProcess:
 			gc.collect()
 
 	def poll_for_submission(self):
-		logging.info(f"Starting poll_for_reply")
+		logging.info(f"Starting Poll For Submission")
 		while True:
 			try:
 				message = self.message_broker.get_message("submission-generator")
 				if message:
 					content = message.content
 					q = json.loads(content)
-					logging.info(f"Processing Message: {q}")
+					logging.info(f"Processing Message For Submission")
 					p = Process(target=self.create_new_submission, args=(q,), daemon=True)
 					p.start()
 					self.message_broker.delete_message("submission-generator", message)
@@ -107,7 +106,6 @@ class ReplyProcess:
 		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
 		logging.info(f"Call To Create New Submission")
 		try:
-			logging.info(f"Call To Create New Submission")
 			bot_name = q.get("name")
 			subreddit_name = q.get("subreddit")
 			post_type = q.get("type")
@@ -121,15 +119,15 @@ class ReplyProcess:
 			if result.get("type") == "text":
 				result = subreddit.submit(title=result.get("title"), selftext=result.get("selftext"))
 				if result:
-					logging.info(f":: Successfully created new submission to {subreddit_name} for {bot_name}")
+					logging.info(f"Successfully created new submission to {subreddit_name} for {bot_name}")
 
 			if result.get("type") == "link":
 				result = subreddit.submit(title=result.get("title"), url=result.get("url"))
 				if result:
-					logging.info(f":: Successfully created new link submission to {subreddit_name} for {bot_name}")
+					logging.info(f"Successfully created new link submission to {subreddit_name} for {bot_name}")
 
 		except Exception as e:
-			logging.error(f":: Failed To Create New Submission: {e}")
+			logging.error(f"Failed To Create New Submission: {e}")
 			return
 		finally:
 			torch.cuda.empty_cache()
