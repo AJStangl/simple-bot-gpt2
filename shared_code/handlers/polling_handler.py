@@ -22,7 +22,6 @@ class StreamPolling(object):
 		self.subreddit = subreddit
 		self.me: Redditor = self.reddit.user.me()
 		self.prompt_handler: TaggingHandler = TaggingHandler(self.reddit)
-		# self.reply_threshold = int(os.environ["ReplyThreshold"])
 		self.tigger_words: [str] = [item.lower() for item in os.environ["TriggerWords"].split(",")]
 		self.banned_words: [str] = [item.lower() for item in os.environ["BannedWords"].split(",")]
 		self.message_broker: MessageBroker = MessageBroker()
@@ -133,10 +132,10 @@ class StreamPolling(object):
 		reply_probability = ReplyProbability(self.me).calculate_reply_probability(comment)
 		random_value = random.random()
 		if random_value < reply_probability:
-			logging.info(f"{comment} Random Reply Value: {random_value:.3f} Is > Calculated Reply Probability: {(reply_probability):.3f} - Starting Reply")
+			logging.info(f"{comment} Random Reply Value: {random_value:.3f} Is < Calculated Reply Probability: {(reply_probability):.3f} - Starting Reply")
 			return True
 		else:
-			logging.info(f"{comment} Random Reply Value: {random_value:.3f} Is < Calculated Reply Probability: {(reply_probability):.3f} - No Reply")
+			logging.info(f"{comment} Random Reply Value: {random_value:.3f} Is > Calculated Reply Probability: {(reply_probability):.3f} - No Reply")
 			return False
 
 	def _get_latest_submission(self):

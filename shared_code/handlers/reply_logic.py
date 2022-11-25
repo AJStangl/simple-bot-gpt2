@@ -34,15 +34,10 @@ class ReplyProbability:
 		:return:
 		"""
 		if not praw_thing.author:
-			# If the praw_thing has been deleted the author will be None,
-			# don't proceed to attempt a reply. Usually we will have downloaded
-			# the praw_thing before it is deleted so this won't get hit often.
 			return 0
 		elif praw_thing.author.name.lower() == self.user.name.lower():
-			# The incoming praw object's author is the bot, so we won't reply
 			return 0
 		elif praw_thing.author.name.lower() in self._do_not_reply_bot_usernames:
-			# Ignore comments/messages from Admins
 			return 0
 
 		# merge the text content into a single variable, so it's easier to work with
