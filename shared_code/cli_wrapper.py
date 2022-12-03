@@ -38,9 +38,7 @@ def cli5():
 @cli1.command()
 @click.option("--bot-names", prompt='specify the bot name. Must be present in the praw.ini file', default='')
 @click.option("--sub-reddit", prompt='specify the sub-reddit name(s). Example. CoopAndPabloPlayHouse+THE_Pablop+SubSimGPT2Interactive', default='CoopAndPabloPlayHouse')
-@click.option("--reply-rate", prompt='The base rate at which a bot will randomly reply. random.int(0,N) / N', default='10')
-def run_multi_bot(bot_names: str, sub_reddit: str, reply_rate: str):
-	os.environ["ReplyThreshold"] = reply_rate
+def run_multi_bot(bot_names: str, sub_reddit: str):
 	bots = bot_names.split(",")
 	BotRunner().run_multi_bot(bots, sub_reddit)
 
@@ -53,9 +51,9 @@ def collect_data(redditor: str):
 	logging.basicConfig(format=f'|:: Thread:%(thread)s|%(asctime)s|{redditor}|::| %(message)s', level=logging.INFO)
 	Collector().get_author_comments(redditor)
 
-
+'Daintylittlesole,bitchtits08,rain18390,arielhartlett,Shot_Debt_7038'
 @cli3.command()
-@click.option("--redditor",
+@click.option("-r", "--redditor",
 			  prompt='The name of the redditor to collect data on',
 			  default='generic')
 def create_training(redditor: str):

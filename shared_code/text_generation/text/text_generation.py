@@ -86,7 +86,6 @@ class ModelTextGenerator:
 		return reply, raw_response
 
 	def generate_submission(self, sub: str, post_type: str) -> dict:
-		sub = "GusterAtCarnegie"
 		if post_type == "text":
 			return self._generate_text_post(sub)
 		elif post_type == "link":

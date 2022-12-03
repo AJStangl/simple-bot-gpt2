@@ -100,7 +100,6 @@ class Tagger(Tags):
 		:return: The tagged submission
 		"""
 		tag: str = f"{self._open_tag}"
-		subreddit = "GusterAtCarnegie"
 
 		if is_own_submission and is_link_submission:
 			tag += f"{self.own_start_of_link_tag} r/{subreddit}{self._close_tag}"
@@ -134,7 +133,6 @@ class Tagger(Tags):
 		:param include_author: Include the author in the tag
 		:return: A tagged comment
 		"""
-		subreddit = "GusterAtCarnegie"
 		tag: str = f"{self._open_tag}"
 		if submission_author == comment_author:
 			tag += f"{self.post_reply_start_tag}"

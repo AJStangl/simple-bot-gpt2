@@ -20,14 +20,6 @@ class SubmissionCreationHandler(object):
 			try:
 				time.sleep(60)
 				continue
-				# for submission in self.reddit.subreddit(self.subreddit).new(limit=10):
-				# 	minutes_since_post = (time.time() - submission.created_utc) / 60
-				# 	if minutes_since_post > random.randint(60, 60 * 4):
-				# 		post_types = random.choice(["text", "link"])
-				# 		messages = list(self.create_submission_message(post_types))
-				# 		for message in messages:
-				# 			m = json.dumps(message)
-				# 			self.message_broker.put_message("submission-generator", m)
 			except Exception as e:
 				logging.info(f"An exception has occurred {e}")
 				time.sleep(60)
