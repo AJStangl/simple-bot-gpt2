@@ -54,13 +54,6 @@ class BotRunner:
 		bots = []
 		procs = []
 
-		for i in range(thread_count):
-			process = RedditBotProcessor(f"Reply-Thread-{i}")
-			process.daemon = True
-			process.run()
-			procs.append(process)
-			time.sleep(1)
-
 		for bot_name in bot_names.split(','):
 			bot = RedditBot(bot_name, sub_reddit)
 			bot.name = bot_name
@@ -68,6 +61,14 @@ class BotRunner:
 			bot.run()
 			bots.append(bot)
 			time.sleep(1)
+
+		for i in range(thread_count):
+			process = RedditBotProcessor(f"Reply-Thread-{i}")
+			process.daemon = True
+			process.run()
+			procs.append(process)
+			time.sleep(60)
+
 		try:
 			while True:
 				time.sleep(5)
