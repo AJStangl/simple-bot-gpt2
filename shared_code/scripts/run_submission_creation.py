@@ -13,7 +13,7 @@ if __name__ == '__main__':
 	SUBMISSION_LIMIT = 100
 	load_dotenv()
 
-	bots = ["SpezBotGPT", "KimmieBotGPT", "SportsFanBotGhostGPT", "LauraBotGPT", "AustinBotGPT", "NickBotGPT", "FunnyGuyGPT"]
+	bots = ["SpezBotGPT", "KimmieBotGPT", "SportsFanBotGhostGPT", "LauraBotGPT", "AustinBotGPT", "NickBotGPT"]
 	post_type = ["text", "link"]
 	while True:
 		bot = random.choice(bots)
