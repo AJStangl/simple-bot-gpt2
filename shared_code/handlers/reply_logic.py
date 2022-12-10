@@ -80,8 +80,7 @@ class ReplyProbability:
 			else:
 				base_probability -= ((comment_depth - 1) * self.reply_logic_configuration.comment_depth_reply_penalty)
 
-		if 'verified gpt-2' in (getattr(praw_thing, 'author_flair_text', '') or '').lower() or any(praw_thing.author.name.lower().endswith(i) for i in ['ssi', 'bot', 'gpt2']):
-			# or any(praw_thing.author.name.lower().__contains__(i) for i in ['ssi', 'bot', 'gpt2', 'gpt']):
+		if 'verified gpt-2' in (getattr(praw_thing, 'author_flair_text', '') or '').lower() or any(praw_thing.author.name.lower().__contains__(i) for i in ['ssi', 'bot', 'gpt2', 'gpt']): # or any(praw_thing.author.name.lower().endswith(i) for i in ['ssi', 'bot', 'gpt2', 'gpt']):
 			# Adjust for when the author is a bot
 			base_probability += self.reply_logic_configuration.bot_author_reply_boost
 		else:
