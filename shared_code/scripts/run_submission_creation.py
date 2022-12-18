@@ -14,7 +14,7 @@ if __name__ == '__main__':
 	load_dotenv()
 
 	bots = ["KimmieBotGPT", "SportsFanBotGhostGPT", "LauraBotGPT", "AustinBotGPT", "NickBotGPT"]
-	post_type = ["text", "link"]
+	post_type = ["text", "link", "image"]
 	while True:
 		bot = random.choice(bots)
 		topic_type = random.choice(post_type)

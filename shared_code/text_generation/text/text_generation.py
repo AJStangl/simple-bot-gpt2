@@ -88,6 +88,8 @@ class ModelTextGenerator:
 	def generate_submission(self, sub: str, post_type: str) -> dict:
 		if post_type == "text":
 			return self._generate_text_post(sub)
+		if post_type == "image":
+			return self._generate_image_post(sub)
 		elif post_type == "link":
 			return self._generate_link_post(sub)
 
@@ -159,6 +161,36 @@ class ModelTextGenerator:
 		finally:
 			torch.cuda.empty_cache()
 			gc.collect()
+
+	def _generate_image_post(self, sub: str) -> dict:
+		try:
+			max_attempt = 5
+			while max_attempt > 0:
+				generate_text_post = self._generate_text_post(sub)
+				clean_title = generate_text_post.get("title")
+				body = generate_text_post.get("selftext")
+				if body is None or clean_title is None:
+					logging.info("Failed to generate text post, trying again...")
+					max_attempt -= 1
+					continue
+
+				image_path = self.image_handler.generate_image_from_prompt(clean_title)
+
+				if self._is_not_none_or_empty(body, image_path):
+					result = {
+						"title": clean_title,
+						"url": image_path,
+						"type": "image"
+					}
+					return result
+				else:
+					logging.info("Failed to validate link submission, trying again...")
+					max_attempt -= 1
+					continue
+		finally:
+			torch.cuda.empty_cache()
+			gc.collect()
+
 
 	@staticmethod
 	def _is_not_none_or_empty(input_text_1: str, input_text_2: str) -> bool:

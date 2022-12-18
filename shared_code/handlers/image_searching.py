@@ -8,6 +8,8 @@ import requests
 from bs4 import BeautifulSoup
 from nltk import sent_tokenize, TweetTokenizer
 
+from shared_code.handlers.image_generator import ImageGenerator
+
 
 class ImageHandler:
 	def __init__(self):
@@ -53,3 +55,14 @@ class ImageHandler:
 					if 'murl' in m:
 						image_url = m['murl']
 						return image_url
+
+	def generate_image_from_prompt(self, prompt: str) -> str:
+		"""
+		Generates an image from a prompt
+		:param prompt: The prompt to generate an image from
+		:return: The url of the image
+		"""
+		logging.info(f"Generating an image from prompt: {prompt}")
+		generator = ImageGenerator()
+		image_path = generator.create_image(prompt)
+		return image_path
