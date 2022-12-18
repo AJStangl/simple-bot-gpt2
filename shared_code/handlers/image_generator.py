@@ -7,14 +7,17 @@ from diffusers import StableDiffusionPipeline
 
 class ImageGenerator(object):
 	def __init__(self):
-		self.pipe: StableDiffusionPipeline = StableDiffusionPipeline.from_pretrained("/models/StableDiffusionPipeline", revision="fp16",
-															torch_dtype=torch.float16, safety_checker=None)
+		pass
 
 	def create_image(self, prompt: str) -> Optional[str]:
 		try:
-			self.pipe = self.pipe.to("cuda")
+			pipe: StableDiffusionPipeline = StableDiffusionPipeline.from_pretrained("/models/StableDiffusionPipeline",
+																					revision="fp16",
+																					torch_dtype=torch.float16,
+																					safety_checker=None)
+			pipe = pipe.to("cuda")
 
-			image = self.pipe(prompt, guidance_scale=8, num_inference_steps=200, height=512, width=768).images[0]
+			image = pipe(prompt, guidance_scale=8, num_inference_steps=200, height=512, width=768).images[0]
 
 			image.save("/images/image.png")
 
@@ -22,6 +25,7 @@ class ImageGenerator(object):
 
 		except Exception as e:
 			logging.info("Failed to generate image, trying again...")
+			exit(1)
 			return None
 
 		finally:

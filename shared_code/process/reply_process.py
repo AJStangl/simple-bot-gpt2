@@ -97,6 +97,9 @@ class ReplyProcess:
 					p.start()
 					self.message_broker.delete_message("submission-generator", message)
 					p.join()
+					if p.exitcode != 0:
+						logging.info(f"Failed To Create Submission")
+						self.message_broker.put_message("submission-generator", json.dumps(content))
 					logging.info(f"Finished Processing Submission Queue Item")
 			finally:
 				time.sleep(10)
