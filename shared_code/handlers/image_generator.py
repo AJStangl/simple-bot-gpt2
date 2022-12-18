@@ -14,13 +14,13 @@ class ImageGenerator(object):
 		try:
 			self.pipe = self.pipe.to("cuda")
 
-			image = self.pipe(prompt).images[0]
+			image = self.pipe(prompt, guidance_scale=8, num_inference_steps=200, height=512, width=768).images[0]
 
 			image.save("/images/image.png")
 
 			return "/images/image.png"
 
-		except:
+		except Exception as e:
 			logging.info("Failed to generate image, trying again...")
 			return None
 

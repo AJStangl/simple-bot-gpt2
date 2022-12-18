@@ -1,7 +1,6 @@
 import logging
-from multiprocessing import Process
 import time
-import sys
+
 import requests
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session

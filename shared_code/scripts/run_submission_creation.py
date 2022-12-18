@@ -1,7 +1,3 @@
-import os
-
-
-
 if __name__ == '__main__':
 	from dotenv import load_dotenv
 	import json
@@ -13,8 +9,8 @@ if __name__ == '__main__':
 	SUBMISSION_LIMIT = 100
 	load_dotenv()
 
-	bots = ["KimmieBotGPT", "SportsFanBotGhostGPT", "LauraBotGPT", "AustinBotGPT", "NickBotGPT"]
-	post_type = ["text", "link", "image"]
+	bots = ["LauraBotGPT, SportsFanBotGhostGPT", "LauraBotGPT", "AustinBotGPT", "NickBotGPT", "CriagBotGPT"]
+	post_type = ["image"] #, "text", "link"]
 	while True:
 		bot = random.choice(bots)
 		topic_type = random.choice(post_type)
@@ -27,4 +23,4 @@ if __name__ == '__main__':
 		}
 		broker = MessageBroker()
 		broker.put_message("submission-generator", json.dumps(message))
-		time.sleep(60 * 60 * 4)
+		time.sleep(60 * 60 * 2)

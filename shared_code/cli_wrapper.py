@@ -1,5 +1,4 @@
 import logging
-import os
 
 import click
 from dotenv import load_dotenv
@@ -43,7 +42,7 @@ def cli6():
 
 @cli1.command()
 @click.option("-b", "--bot-names", help='specify the bot name. Must be present in the praw.ini file',
-			  default='KimmieBotGPT,SportsFanBotGhostGPT,LauraBotGPT,AustinBotGPT,NickBotGPT',
+			  default='KimmieBotGPT,SportsFanBotGhostGPT,LauraBotGPT,AustinBotGPT,NickBotGPT,CriagBotGPT',
 			  show_default=True, required=True)
 @click.option("-s", "--sub-reddit",
 			  help='specify the sub-reddit name(s). Example. CoopAndPabloPlayHouse+THE_Pablop+SubSimGPT2Interactive',
@@ -75,7 +74,7 @@ def run_message_processor(threads: int):
 
 @cli5.command()
 @click.option("-b", "--bot-names", help='specify the bot name. Must be present in the praw.ini file',
-			  default='KimmieBotGPT,SportsFanBotGhostGPT,LauraBotGPT,AustinBotGPT,NickBotGPT',
+			  default='KimmieBotGPT,SportsFanBotGhostGPT,LauraBotGPT,AustinBotGPT,NickBotGPT,CriagBotGPT',
 			  show_default=True, required=True)
 @click.option("-s", "--sub-reddit",
 			  help='specify the sub-reddit name(s). Example. CoopAndPabloPlayHouse+THE_Pablop+SubSimGPT2Interactive',

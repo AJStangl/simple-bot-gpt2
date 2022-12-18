@@ -179,7 +179,7 @@ class ModelTextGenerator:
 				if self._is_not_none_or_empty(body, image_path):
 					result = {
 						"title": clean_title,
-						"url": image_path,
+						"image_path": image_path,
 						"type": "image"
 					}
 					return result
@@ -226,7 +226,8 @@ class ModelTextGenerator:
 			'sexual_explicit': 1.0
 		}
 
-		results = self.detoxify.predict(input_text)
+		return True
+		# results = self.detoxify.predict(input_text)
 
 		for key in threshold_map:
 			if results[key] > threshold_map[key]:

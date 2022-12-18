@@ -127,6 +127,11 @@ class ReplyProcess:
 				if result:
 					logging.info(f"Successfully created new link submission to {subreddit_name} for {bot_name}")
 
+			if result.get("type") == "image":
+				result = subreddit.submit_image(title=result.get("title"), image_path=result.get("image_path"))
+				if result:
+					logging.info(f"Successfully created new image submission to {subreddit_name} for {bot_name}")
+
 		except Exception as e:
 			logging.error(f"Failed To Create New Submission: {e}")
 			return
