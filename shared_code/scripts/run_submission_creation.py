@@ -10,8 +10,9 @@ if __name__ == '__main__':
 	load_dotenv()
 
 	bots = ["LauraBotGPT", "SportsFanBotGhostGPT", "LauraBotGPT", "AustinBotGPT", "NickBotGPT", "CriagBotGPT"]
-	post_type = ["image"] #, "text", "link"]
+	post_type = ["image", "text", "link"]
 	subs = ["CoopAndPabloPlayHouse", "SubSimGPT2Interactive"]
+
 
 	while True:
 		random.shuffle(subs)
