@@ -27,4 +27,5 @@ if __name__ == '__main__':
 			}
 			broker = MessageBroker()
 			broker.put_message("submission-generator", json.dumps(message))
+			time.sleep(10 * 3)
 		time.sleep(60 * 60 * 4)

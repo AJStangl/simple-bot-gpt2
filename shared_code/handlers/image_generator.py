@@ -25,7 +25,6 @@ class ImageGenerator(object):
 
 		except Exception as e:
 			logging.info("Failed to generate image, trying again...")
-			exit(1)
 			return None
 
 		finally:

@@ -97,9 +97,6 @@ class ReplyProcess:
 					p.start()
 					self.message_broker.delete_message("submission-generator", message)
 					p.join()
-					if p.exitcode != 0:
-						logging.info(f"Failed To Create Submission")
-						self.message_broker.put_message("submission-generator", json.dumps(content))
 					logging.info(f"Finished Processing Submission Queue Item")
 			finally:
 				time.sleep(10)
@@ -134,9 +131,12 @@ class ReplyProcess:
 				result = subreddit.submit_image(title=result.get("title"), image_path=result.get("image_path"))
 				if result:
 					logging.info(f"Successfully created new image submission to {subreddit_name} for {bot_name}")
+				else:
+					MessageBroker().put_message("submission-generator", json.dumps(q))
 
 		except Exception as e:
 			logging.error(f"Failed To Create New Submission: {e}")
+			MessageBroker().put_message("submission-generator", json.dumps(q))
 			return
 		finally:
 			torch.cuda.empty_cache()

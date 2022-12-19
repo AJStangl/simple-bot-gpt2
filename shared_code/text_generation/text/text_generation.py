@@ -10,6 +10,8 @@ import torch
 import ftfy
 from detoxify import Detoxify
 from simpletransformers.language_generation import LanguageGenerationModel
+
+from shared_code.handlers.image_generator import ImageGenerator
 from shared_code.handlers.image_searching import ImageHandler
 
 
@@ -174,7 +176,7 @@ class ModelTextGenerator:
 					max_attempt -= 1
 					continue
 
-				image_path = self.image_handler.generate_image_from_prompt(clean_title)
+				image_path = ImageGenerator().create_image(clean_title)
 
 				if self._is_not_none_or_empty(body, image_path):
 					result = {
