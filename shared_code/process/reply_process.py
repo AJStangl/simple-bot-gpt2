@@ -1,6 +1,7 @@
 import gc
 import json
 import logging
+import os
 import time
 from multiprocessing import Process
 
@@ -118,25 +119,22 @@ class ReplyProcess:
 			result: dict = generator.generate_submission(subreddit_name, post_type)
 
 			if result.get("type") == "text":
-				result = subreddit.submit(title=result.get("title"), selftext=result.get("selftext"))
+				result = subreddit.submit(title=result.get("title"), selftext=result.get("selftext"), flair_id=os.environ["subreddit_flair"])
 				if result:
 					logging.info(f"Successfully created new submission to {subreddit_name} for {bot_name}")
 
 			if result.get("type") == "link":
-				result = subreddit.submit(title=result.get("title"), url=result.get("url"))
+				result = subreddit.submit(title=result.get("title"), url=result.get("url"), flair_id=os.environ["subreddit_flair"])
 				if result:
 					logging.info(f"Successfully created new link submission to {subreddit_name} for {bot_name}")
 
 			if result.get("type") == "image":
-				result = subreddit.submit_image(title=result.get("title"), image_path=result.get("image_path"))
+				result = subreddit.submit_image(title=result.get("title"), image_path=result.get("image_path"), flair_id=os.environ["subreddit_flair"])
 				if result:
 					logging.info(f"Successfully created new image submission to {subreddit_name} for {bot_name}")
-				else:
-					MessageBroker().put_message("submission-generator", json.dumps(q))
 
 		except Exception as e:
 			logging.error(f"Failed To Create New Submission: {e}")
-			MessageBroker().put_message("submission-generator", json.dumps(q))
 			return
 		finally:
 			torch.cuda.empty_cache()
