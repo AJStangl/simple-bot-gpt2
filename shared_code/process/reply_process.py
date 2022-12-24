@@ -1,18 +1,24 @@
 import gc
 import json
 import logging
-import os
+import random
 import time
 from multiprocessing import Process
 
 import praw
 import torch
-import random
 from praw.reddit import Comment, Submission, Subreddit
 
 from shared_code.messaging.message_sender import MessageBroker
-from shared_code.text_generation.text.text_generation import ModelTextGenerator
+import re
+class Helper:
 
+	@staticmethod
+	def set_global_logging_level(level=logging.ERROR, prefices=[""]):
+		prefix_re = re.compile(fr'^(?:{ "|".join(prefices) })')
+		for name in logging.root.manager.loggerDict:
+			if re.match(prefix_re, name):
+				logging.getLogger(name).setLevel(level)
 
 class ReplyProcess:
 	def __init__(self):
@@ -30,17 +36,18 @@ class ReplyProcess:
 				if message:
 					content = message.content
 					q = json.loads(content)
-					logging.info(f"Processing Message For Reply")
+					logging.debug(f"Processing Message For Reply")
 					p = Process(target=self.reply_to_thing, args=(q,), daemon=True)
 					p.start()
 					self.message_broker.delete_message("message-generator", message)
 					p.join()
-					logging.info(f"Finished Processing Queue Item")
+					logging.debug(f"Finished Processing Queue Item")
 			finally:
 				time.sleep(10)
 
 	@staticmethod
 	def reply_to_thing(q: dict):
+		from shared_code.text_generation.text.text_generation import ModelTextGenerator
 		"""
 		Replies to a comment or submission. Out of process method
 		:param q:
@@ -48,13 +55,13 @@ class ReplyProcess:
 		"""
 		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s',
 							level=logging.INFO)
-		logging.info(f"Call To Create New Reply To Comment Reply")
 		max_comments = 500
 		try:
 			name = q.get("name")
 			prompt = q.get("prompt")
 			thing_id = q.get("id")
 			thing_type = q.get("type")
+			logging.info(f"Call To Create New Reply To Comment Reply for {name}")
 			generator = ModelTextGenerator(name, torch.cuda.is_available())
 			instance = praw.Reddit(site_name=name)
 			if thing_type == "comment":
@@ -108,12 +115,12 @@ class ReplyProcess:
 				if message:
 					content = message.content
 					q = json.loads(content)
-					logging.info(f"Processing Message For Submission")
+					logging.debug(f"Processing Message For Submission")
 					p = Process(target=self.create_new_submission, args=(q,), daemon=True)
 					p.start()
 					self.message_broker.delete_message("submission-generator", message)
 					p.join()
-					logging.info(f"Finished Processing Submission Queue Item")
+					logging.debug(f"Finished Processing Submission Queue Item")
 			finally:
 				time.sleep(10)
 
@@ -124,14 +131,20 @@ class ReplyProcess:
 		:param q:
 		:return:
 		"""
+		from shared_code.text_generation.text.text_generation import ModelTextGenerator
 		import logging
-		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s',
-							level=logging.INFO)
-		logging.info(f"Call To Create New Submission")
+		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
+		Helper.set_global_logging_level()
+		broker = MessageBroker()
+		broker.put_message("submission-lock", content=json.dumps({"lock": True}), time_to_live=60*60)
+		lock = broker.get_message("submission-lock")
+		logging.info("Acquired Submission Lock")
 		try:
 			bot_name = q.get("name")
 			subreddit_name = q.get("subreddit")
 			post_type = q.get("type")
+			logging.info(f"Call To Create New Submission for {bot_name} to {subreddit_name} with type {post_type}")
+
 			instance = praw.Reddit(site_name=bot_name)
 			generator = ModelTextGenerator(bot_name, torch.cuda.is_available())
 
@@ -143,19 +156,35 @@ class ReplyProcess:
 				result = subreddit.submit(title=result.get("title"), selftext=result.get("selftext"))
 				if result:
 					logging.info(f"Successfully created new submission to {subreddit_name} for {bot_name}")
+					return
+				else:
+					logging.info(f"Failed to create new submission to {subreddit_name} for {bot_name}")
+					broker.delete_message("submission-lock", broker.delete_message("submission-lock", lock))
+					return
 
 			if result.get("type") == "link":
 				result = subreddit.submit(title=result.get("title"), url=result.get("url"))
 				if result:
 					logging.info(f"Successfully created new link submission to {subreddit_name} for {bot_name}")
+					return
+				else:
+					logging.info(f"Failed to create new link submission to {subreddit_name} for {bot_name}")
+					broker.delete_message("submission-lock", broker.delete_message("submission-lock", lock))
+					return
 
 			if result.get("type") == "image":
 				result = subreddit.submit_image(title=result.get("title"), image_path=result.get("image_path"))
 				if result:
 					logging.info(f"Successfully created new image submission to {subreddit_name} for {bot_name}")
+					return
+				else:
+					logging.info(f"Failed To Create New Image Submission to {subreddit_name} for {bot_name}")
+					broker.delete_message("submission-lock", broker.delete_message("submission-lock", lock))
+					return
 
 		except Exception as e:
-			logging.error(f"Failed To Create New Submission: {e}")
+			logging.error(f"Failed To Create New Submission. An exception has occurred: {e}")
+			broker.delete_message("submission-lock", broker.delete_message("submission-lock", lock))
 			return
 		finally:
 			torch.cuda.empty_cache()
@@ -172,7 +201,6 @@ class SubmissionProcess:
 		Polls the message queue for a submission to create. In Process Method
 		:return:
 		"""
-		subs = os.environ["SubToPost"].split(",")
 		# 5 in 10 chance image, 3 in one chance text, 1 10 chance text
 		post_type = ["image", "image", "image", "image", "image", "text", "text", "text", "text", "link"]
 		subs = ["CoopAndPabloPlayHouse"]
@@ -180,23 +208,17 @@ class SubmissionProcess:
 			sub = random.choice(subs)
 			bot = self.bot_name
 			topic_type = random.choice(post_type)
-
 			message = {
 				"name": bot,
 				"subreddit": sub,
 				"type": topic_type,
 			}
 			broker = MessageBroker()
-			count = broker.count_message("submission-generator")
-			while count > 1:
-				time.sleep(30)
-			print(f"Sending message to queue for {bot} with post type: {topic_type} to sub {sub}")
-			broker.put_message("submission-generator", json.dumps(message))
-			if topic_type == "image":
-				time.sleep(60 * 60 * random.randint(1, 3))
-			if topic_type == "text":
-				time.sleep(60 * 60 * random.randint(1, 3))
-			if topic_type == "link":
-				time.sleep(60 * 60 * random.randint(1, 3))
+			submission_lock = broker.count_message("submission-lock")
+
+			if submission_lock == 0:
+				print(f"Sending message to queue for {bot} with post type: {topic_type} to sub {sub}")
+				broker.put_message("submission-generator", json.dumps(message))
 			else:
-				time.sleep(60 * 60 * random.randint(1, 3))
+				print(f"Submission Lock Exists. Sleeping for 1 minutes")
+				time.sleep(60 * 1)

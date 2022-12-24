@@ -27,9 +27,9 @@ class ModelTextGenerator:
 			'repetition_penalty': 1.008,
 			'stop_token': '<|endoftext|>'
 		}
+		self.use_cuda = use_cuda
 		self.devices = ['cuda:0', 'cuda:1']
 		self.model_path: str = os.environ[f"{bot_name}"]
-		self.model = LanguageGenerationModel("gpt2", self.model_path, use_cuda=use_cuda, cuda_device=random.randint(0, 1))
 		self.detoxify = Detoxify('unbiased-small', device=torch.device(random.choice(self.devices) if use_cuda else 'cpu'))
 		self.image_handler: ImageHandler = ImageHandler()
 
@@ -53,13 +53,14 @@ class ModelTextGenerator:
 					return return_string
 
 	def generate_text(self, prompt: str):
+		model = LanguageGenerationModel("gpt2", self.model_path, use_cuda=self.use_cuda, cuda_device=random.randint(0, 1))
 		start_time = time.time()
 		reply = None
 		raw_response = None
 		output_list = []
 		attempts = 0
 		while reply is None:
-			samples = self.model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False)
+			samples = model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False)
 			sample = samples[0]
 			output_list.append(sample)
 			if sample is None:
@@ -83,7 +84,7 @@ class ModelTextGenerator:
 		end_time = time.time()
 		duration = round(end_time - start_time, 1)
 
-		logging.info(f'{len(output_list)} sample(s) of text generated in {duration} seconds.')
+		logging.debug(f'{len(output_list)} sample(s) of text generated in {duration} seconds.')
 		return reply, raw_response
 
 	def generate_submission(self, sub: str, post_type: str) -> dict:
@@ -96,13 +97,14 @@ class ModelTextGenerator:
 
 	def _generate_text_post(self, sub: str) -> dict:
 		try:
+			model = LanguageGenerationModel("gpt2", self.model_path, use_cuda=self.use_cuda, cuda_device=random.randint(0, 1))
 			max_attempts = 5
 			reply = None
 			title_regex = r"<\|sot\|>(.+?)<\|eot\|>"
 			text_body_regex = r"<\|sost\|>(.+?)<\|eost\|>"
 			prompt: str = f"<|ososs r/{sub}|><|sot|>"
 			while reply is None:
-				for text in self.model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False):
+				for text in model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False):
 					# noinspection PyBroadException
 					try:
 						if max_attempts == 0:
