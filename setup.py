@@ -30,7 +30,8 @@ setup(
 			  'shared_code/messaging',
 			  'shared_code/text_generation',
 			  'shared_code/text_generation/text',
-			  'shared_code/text_generation/toxicity'],
+			  'shared_code/text_generation/toxicity',
+			  'shared_code/utility'],
 
 	long_description=read('README.md'),
 	classifiers=[

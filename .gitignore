@@ -10,3 +10,4 @@
 /cache_dir/
 /build/*
 /simple_bot_gpt2.egg-info/*
+/config.ini

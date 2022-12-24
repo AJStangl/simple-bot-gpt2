@@ -15,6 +15,7 @@ RIP:
 - u/SpezBotGPT
 - u/PoetBotGPT
 - u/FunnyGuyGPT
+- u/CriagBotGPT
 
 Some of you were good bots. Some of you were bad bots. Some of you were bots that I didn't even know existed. But all of
 you were bots that I loved. And I will miss you all.

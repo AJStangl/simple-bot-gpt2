@@ -1,0 +1,13 @@
+[Default]
+PsqlUser=""
+PsqlPassword=""
+AzureStorageConnectionString=""
+
+[Bots]
+SomeBotGPT="/path/to/SomeBotGPT"
+
+[Parameters]
+BannedWords="WordsToNotUse"
+SubToPost="Sub,To,Post,To"
+TriggerWords="Foo,Bar,Baz"
+Bots="Bots, Who, Should, Post"

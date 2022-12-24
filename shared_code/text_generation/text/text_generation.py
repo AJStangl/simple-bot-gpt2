@@ -54,7 +54,6 @@ class ModelTextGenerator:
 
 	def generate_text(self, prompt: str):
 		start_time = time.time()
-
 		reply = None
 		raw_response = None
 		output_list = []
@@ -228,8 +227,7 @@ class ModelTextGenerator:
 			'sexual_explicit': 1.0
 		}
 
-		return True
-		# results = self.detoxify.predict(input_text)
+		results = self.detoxify.predict(input_text)
 
 		for key in threshold_map:
 			if results[key] > threshold_map[key]:

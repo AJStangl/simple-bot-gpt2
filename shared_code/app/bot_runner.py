@@ -2,13 +2,13 @@ import logging
 import time
 
 from shared_code.bot.reddit_bot import RedditBot
-from shared_code.bot.reddit_bot_processor import RedditBotProcessor,RedditSubmissionProcessor
+from shared_code.bot.reddit_bot_processor import RedditBotProcessor, RedditSubmissionProcessor
 
 
 class BotRunner:
 
 	@staticmethod
-	def run_multi_bot(bot_names: [str], sub_reddit: str):
+	def run_bots(bot_names: [str], sub_reddit: str):
 		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s',
 							level=logging.INFO)
 		logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)

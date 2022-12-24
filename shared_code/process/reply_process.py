@@ -19,6 +19,10 @@ class ReplyProcess:
 		self.message_broker = MessageBroker()
 
 	def poll_for_reply(self):
+		"""
+		Polls the message queue for a reply to a comment. In Process Method
+		:return:
+		"""
 		logging.info(f"Starting Poll For Reply")
 		while True:
 			try:
@@ -37,6 +41,11 @@ class ReplyProcess:
 
 	@staticmethod
 	def reply_to_thing(q: dict):
+		"""
+		Replies to a comment or submission. Out of process method
+		:param q:
+		:return:
+		"""
 		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s',
 							level=logging.INFO)
 		logging.info(f"Call To Create New Reply To Comment Reply")
@@ -88,6 +97,10 @@ class ReplyProcess:
 			gc.collect()
 
 	def poll_for_submission(self):
+		"""
+		Polls the message queue for a submission to reply to. In Process Method
+		:return:
+		"""
 		logging.info(f"Starting Poll For Submission")
 		while True:
 			try:
@@ -106,6 +119,11 @@ class ReplyProcess:
 
 	@staticmethod
 	def create_new_submission(q):
+		"""
+		Creates a new submission. Out of process method
+		:param q:
+		:return:
+		"""
 		import logging
 		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s',
 							level=logging.INFO)
@@ -122,20 +140,17 @@ class ReplyProcess:
 			result: dict = generator.generate_submission(subreddit_name, post_type)
 
 			if result.get("type") == "text":
-				result = subreddit.submit(title=result.get("title"), selftext=result.get("selftext"),
-										  flair_id=os.environ["subreddit_flair"])
+				result = subreddit.submit(title=result.get("title"), selftext=result.get("selftext"))
 				if result:
 					logging.info(f"Successfully created new submission to {subreddit_name} for {bot_name}")
 
 			if result.get("type") == "link":
-				result = subreddit.submit(title=result.get("title"), url=result.get("url"),
-										  flair_id=os.environ["subreddit_flair"])
+				result = subreddit.submit(title=result.get("title"), url=result.get("url"))
 				if result:
 					logging.info(f"Successfully created new link submission to {subreddit_name} for {bot_name}")
 
 			if result.get("type") == "image":
-				result = subreddit.submit_image(title=result.get("title"), image_path=result.get("image_path"),
-												flair_id=os.environ["subreddit_flair"])
+				result = subreddit.submit_image(title=result.get("title"), image_path=result.get("image_path"))
 				if result:
 					logging.info(f"Successfully created new image submission to {subreddit_name} for {bot_name}")
 
@@ -153,6 +168,10 @@ class SubmissionProcess:
 		self.bot_name = bot_name
 
 	def poll_for_creation(self):
+		"""
+		Polls the message queue for a submission to create. In Process Method
+		:return:
+		"""
 		subs = os.environ["SubToPost"].split(",")
 		# 5 in 10 chance image, 3 in one chance text, 1 10 chance text
 		post_type = ["image", "image", "image", "image", "image", "text", "text", "text", "text", "link"]
