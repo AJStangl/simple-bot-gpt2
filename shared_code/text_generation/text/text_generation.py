@@ -79,7 +79,7 @@ class ModelTextGenerator:
 			if attempts > 10:
 				break
 			else:
-				logging.info(f"Attempting Again...{attempts}")
+				logging.info(f"Attempting Again...{attempts} for {self.model_path}")
 
 		end_time = time.time()
 		duration = round(end_time - start_time, 1)

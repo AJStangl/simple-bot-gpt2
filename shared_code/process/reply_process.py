@@ -136,8 +136,6 @@ class ReplyProcess:
 		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
 		Helper.set_global_logging_level()
 		broker = MessageBroker()
-		broker.put_message("submission-lock", content=json.dumps({"lock": True}), time_to_live=60*60)
-		lock = broker.get_message("submission-lock")
 		logging.info("Acquired Submission Lock")
 		try:
 			bot_name = q.get("name")
@@ -159,7 +157,9 @@ class ReplyProcess:
 					return
 				else:
 					logging.info(f"Failed to create new submission to {subreddit_name} for {bot_name}")
-					broker.delete_message("submission-lock", broker.delete_message("submission-lock", lock))
+					lock = broker.get_message("submission-lock")
+					pop_receipt = lock.pop_receipt
+					broker.delete_message("submission-lock", lock, pop_receipt)
 					return
 
 			if result.get("type") == "link":
@@ -169,7 +169,9 @@ class ReplyProcess:
 					return
 				else:
 					logging.info(f"Failed to create new link submission to {subreddit_name} for {bot_name}")
-					broker.delete_message("submission-lock", broker.delete_message("submission-lock", lock))
+					lock = broker.get_message("submission-lock")
+					pop_receipt = lock.pop_receipt
+					broker.delete_message("submission-lock", lock, pop_receipt)
 					return
 
 			if result.get("type") == "image":
@@ -179,17 +181,27 @@ class ReplyProcess:
 					return
 				else:
 					logging.info(f"Failed To Create New Image Submission to {subreddit_name} for {bot_name}")
-					broker.delete_message("submission-lock", broker.delete_message("submission-lock", lock))
+					lock = broker.get_message("submission-lock")
+					pop_receipt = lock.pop_receipt
+					broker.delete_message("submission-lock", lock, pop_receipt)
 					return
 
 		except Exception as e:
 			logging.error(f"Failed To Create New Submission. An exception has occurred: {e}")
-			broker.delete_message("submission-lock", broker.delete_message("submission-lock", lock))
+			lock = broker.get_message("submission-lock")
+			pop_receipt = lock.pop_receipt
+			broker.delete_message("submission-lock", lock, pop_receipt)
 			return
 		finally:
 			torch.cuda.empty_cache()
 			gc.collect()
 
+	def delete_lock(self):
+		"""
+		Deletes the submission lock
+		:return:
+		"""
+		logging.info(f"Deleting Submission Lock")
 
 class SubmissionProcess:
 	def __init__(self, bot_name: str):
@@ -217,8 +229,10 @@ class SubmissionProcess:
 			submission_lock = broker.count_message("submission-lock")
 
 			if submission_lock == 0:
-				print(f"Sending message to queue for {bot} with post type: {topic_type} to sub {sub}")
+				logging.info(f"Sending message to queue for {bot} with post type: {topic_type} to sub {sub}")
 				broker.put_message("submission-generator", json.dumps(message))
+				broker.put_message("submission-lock", json.dumps({"lock": True}), time_to_live=60*60)
+				time.sleep(5 * 1)
 			else:
-				print(f"Submission Lock Exists. Sleeping for 1 minutes")
+				logging.debug(f"Submission Lock Exists. Sleeping for 1 minutes")
 				time.sleep(60 * 1)
