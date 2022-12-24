@@ -14,6 +14,9 @@ from simpletransformers.language_generation import LanguageGenerationModel
 from shared_code.handlers.image_generator import ImageGenerator
 from shared_code.handlers.image_searching import ImageHandler
 
+from transformers import logging as transformers_logging
+
+transformers_logging.set_verbosity(transformers_logging.FATAL)
 
 class ModelTextGenerator:
 	def __init__(self, bot_name: str, use_cuda=False):
@@ -60,7 +63,12 @@ class ModelTextGenerator:
 		output_list = []
 		attempts = 0
 		while reply is None:
-			samples = model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False)
+			try:
+				samples = model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False)
+			except Exception as e:
+				logging.error(f"Failed to generate text for {self.model_path} with an exception")
+				return "", ""
+
 			sample = samples[0]
 			output_list.append(sample)
 			if sample is None:
@@ -77,10 +85,10 @@ class ModelTextGenerator:
 					reply = finalized
 			attempts += 1
 			if attempts > 10:
+				logging.info(f"Failed to generate text after 10 attempts for {self.model_path}")
 				break
 			else:
-				logging.info(f"Attempting Again...{attempts} for {self.model_path}")
-
+				logging.debug(f"Attempting Again...{attempts} for {self.model_path}")
 		end_time = time.time()
 		duration = round(end_time - start_time, 1)
 
@@ -144,7 +152,7 @@ class ModelTextGenerator:
 				clean_title = generate_text_post.get("title")
 				body = generate_text_post.get("selftext")
 				if body is None or clean_title is None:
-					logging.info("Failed to generate text post, trying again...")
+					logging.debug("Failed to generate text post, trying again...")
 					max_attempt -= 1
 					continue
 
@@ -158,9 +166,11 @@ class ModelTextGenerator:
 					}
 					return result
 				else:
-					logging.info("Failed to validate link submission, trying again...")
+					logging.debug("Failed to validate link submission, trying again...")
 					max_attempt -= 1
 					continue
+			logging.info("Failed to generate link submission after 5 attempts.")
+			return {}
 		finally:
 			torch.cuda.empty_cache()
 			gc.collect()
@@ -173,7 +183,7 @@ class ModelTextGenerator:
 				clean_title = generate_text_post.get("title")
 				body = generate_text_post.get("selftext")
 				if body is None or clean_title is None:
-					logging.info("Failed to generate text post, trying again...")
+					logging.debug(f"Failed to generate text post, trying again...Attempts left: {max_attempt}")
 					max_attempt -= 1
 					continue
 
@@ -187,9 +197,12 @@ class ModelTextGenerator:
 					}
 					return result
 				else:
-					logging.info("Failed to validate link submission, trying again...")
+					logging.debug(f"Failed to validate link submission...Attempts left: {max_attempt}")
 					max_attempt -= 1
 					continue
+
+			logging.info("Failed to generate image submission after 5 attempts.")
+			return {}
 		finally:
 			torch.cuda.empty_cache()
 			gc.collect()

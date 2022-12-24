@@ -10,15 +10,10 @@ import torch
 from praw.reddit import Comment, Submission, Subreddit
 
 from shared_code.messaging.message_sender import MessageBroker
-import re
-class Helper:
+from shared_code.utility.global_logging_filter import LoggingExtension
 
-	@staticmethod
-	def set_global_logging_level(level=logging.ERROR, prefices=[""]):
-		prefix_re = re.compile(fr'^(?:{ "|".join(prefices) })')
-		for name in logging.root.manager.loggerDict:
-			if re.match(prefix_re, name):
-				logging.getLogger(name).setLevel(level)
+LoggingExtension.set_global_logging_level(logging.WARNING)
+logging_format = LoggingExtension.get_logging_format()
 
 class ReplyProcess:
 	def __init__(self):
@@ -29,7 +24,7 @@ class ReplyProcess:
 		Polls the message queue for a reply to a comment. In Process Method
 		:return:
 		"""
-		logging.info(f"Starting Poll For Reply")
+		logging.debug(f"Starting Poll For Reply")
 		while True:
 			try:
 				message = self.message_broker.get_message("message-generator")
@@ -53,40 +48,41 @@ class ReplyProcess:
 		:param q:
 		:return:
 		"""
-		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s',
+		logging.basicConfig(format=logging_format,
 							level=logging.INFO)
 		max_comments = 500
+		name = None
 		try:
 			name = q.get("name")
 			prompt = q.get("prompt")
 			thing_id = q.get("id")
 			thing_type = q.get("type")
-			logging.info(f"Call To Create New Reply To Comment Reply for {name}")
+			logging.info(f"Remote Call: Reply To Comment Reply for {name}")
 			generator = ModelTextGenerator(name, torch.cuda.is_available())
 			instance = praw.Reddit(site_name=name)
 			if thing_type == "comment":
 				comment: Comment = instance.comment(id=thing_id)
 				submission: Submission = comment.submission
 				if submission.locked:
-					logging.info(f"Submission is locked, skipping")
+					logging.debug(f"Submission is locked, skipping")
 					return
 				if submission.num_comments > max_comments:
-					logging.info(f"Comment Has More Than {max_comments} Comments, Skipping")
+					logging.debug(f"Comment Has More Than {max_comments} Comments, Skipping")
 					return
 
 				text, raw_text = generator.generate_text(prompt)
 				reply = comment.reply(body=text)
 				if reply:
-					logging.info(f"Successfully replied to comment {thing_id}")
+					logging.info(f"Remote Call Success: Reply To Comment Reply for {name} complete")
 					return
 				else:
-					logging.info(f"Failed to reply to comment {thing_id}")
+					logging.info(f"Remote Call Failed: Reply To Comment Reply for {name} with an error")
 					return
 
 			if thing_type == "submission":
 				submission: Submission = instance.submission(id=thing_id)
 				if submission.locked:
-					logging.info(f"Submission is locked, skipping")
+					logging.debug(f"Submission is locked, skipping")
 					return
 				text, raw_text = generator.generate_text(prompt)
 				reply = submission.reply(body=text)
@@ -97,7 +93,7 @@ class ReplyProcess:
 					logging.info(f"Failed To Reply To Submission")
 					return
 		except Exception as e:
-			logging.info(f"Exception Occurred: {e} attempting to reply")
+			logging.error(f"Remote Call Failed: Reply To Comment Reply for {name} with an exception")
 			return
 		finally:
 			torch.cuda.empty_cache()
@@ -108,7 +104,7 @@ class ReplyProcess:
 		Polls the message queue for a submission to reply to. In Process Method
 		:return:
 		"""
-		logging.info(f"Starting Poll For Submission")
+		logging.debug(f"Starting Poll For Submission")
 		while True:
 			try:
 				message = self.message_broker.get_message("submission-generator")
@@ -133,15 +129,14 @@ class ReplyProcess:
 		"""
 		from shared_code.text_generation.text.text_generation import ModelTextGenerator
 		import logging
-		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
-		Helper.set_global_logging_level()
+		logging.basicConfig(format=logging_format, level=logging.INFO)
+		LoggingExtension.set_global_logging_level()
 		broker = MessageBroker()
-		logging.info("Acquired Submission Lock")
 		try:
 			bot_name = q.get("name")
 			subreddit_name = q.get("subreddit")
 			post_type = q.get("type")
-			logging.info(f"Call To Create New Submission for {bot_name} to {subreddit_name} with type {post_type}")
+			logging.info(f"Remote Call: Create New Submission for {bot_name} to {subreddit_name} with type {post_type}")
 
 			instance = praw.Reddit(site_name=bot_name)
 			generator = ModelTextGenerator(bot_name, torch.cuda.is_available())
@@ -153,10 +148,10 @@ class ReplyProcess:
 			if result.get("type") == "text":
 				result = subreddit.submit(title=result.get("title"), selftext=result.get("selftext"))
 				if result:
-					logging.info(f"Successfully created new submission to {subreddit_name} for {bot_name}")
+					logging.info(f"Remote Call: Successfully created new submission to {subreddit_name} for {bot_name}")
 					return
 				else:
-					logging.info(f"Failed to create new submission to {subreddit_name} for {bot_name}")
+					logging.info(f"Remote Call: Failed to create new submission to {subreddit_name} for {bot_name}")
 					lock = broker.get_message("submission-lock")
 					pop_receipt = lock.pop_receipt
 					broker.delete_message("submission-lock", lock, pop_receipt)
@@ -165,10 +160,10 @@ class ReplyProcess:
 			if result.get("type") == "link":
 				result = subreddit.submit(title=result.get("title"), url=result.get("url"))
 				if result:
-					logging.info(f"Successfully created new link submission to {subreddit_name} for {bot_name}")
+					logging.info(f"Remote Call: Successfully created new link submission to {subreddit_name} for {bot_name}")
 					return
 				else:
-					logging.info(f"Failed to create new link submission to {subreddit_name} for {bot_name}")
+					logging.info(f"Remote Call: Failed to create new link submission to {subreddit_name} for {bot_name}")
 					lock = broker.get_message("submission-lock")
 					pop_receipt = lock.pop_receipt
 					broker.delete_message("submission-lock", lock, pop_receipt)
@@ -177,10 +172,10 @@ class ReplyProcess:
 			if result.get("type") == "image":
 				result = subreddit.submit_image(title=result.get("title"), image_path=result.get("image_path"))
 				if result:
-					logging.info(f"Successfully created new image submission to {subreddit_name} for {bot_name}")
+					logging.info(f"Remote Call: Successfully created new image submission to {subreddit_name} for {bot_name}")
 					return
 				else:
-					logging.info(f"Failed To Create New Image Submission to {subreddit_name} for {bot_name}")
+					logging.info(f"Remote Call: Failed To Create New Image Submission to {subreddit_name} for {bot_name}")
 					lock = broker.get_message("submission-lock")
 					pop_receipt = lock.pop_receipt
 					broker.delete_message("submission-lock", lock, pop_receipt)

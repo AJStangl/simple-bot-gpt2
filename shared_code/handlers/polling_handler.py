@@ -27,7 +27,7 @@ class StreamPolling(object):
 		self.message_broker: MessageBroker = MessageBroker()
 
 	def poll_for_submissions(self):
-		logging.info(f"Starting poll for submissions for {self.me.name}")
+		logging.debug(f"Starting poll for submissions for {self.me.name}")
 		while True:
 			try:
 				submission_stream = self.subreddit.stream.submissions(pause_after=0, skip_existing=True)
@@ -41,7 +41,7 @@ class StreamPolling(object):
 				time.sleep(self.MAX_SLEEP_TIME)
 
 	def poll_for_comments(self):
-		logging.info(f"Starting poll for comments for {self.me.name}")
+		logging.debug(f"Starting poll for comments for {self.me.name}")
 		while True:
 			try:
 				comment_stream = self.subreddit.stream.comments(pause_after=0, skip_existing=True)
@@ -65,7 +65,7 @@ class StreamPolling(object):
 				return
 
 			if self._should_reply(comment):
-				logging.info(f"Processing Response For Comment: {comment} for {self.me.name}")
+				logging.info(f"Sending Message To Queue For Comment: {comment}")
 				reddit_data: RedditData = self.prompt_handler.handle_comment(comment)
 				prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
 				q = {'id': comment.id, 'name': self.me.name, 'prompt': prompt, 'type': 'comment'}
@@ -91,7 +91,7 @@ class StreamPolling(object):
 				logging.debug(f"Incoming Submission for {self.me.name} is None... Skipping")
 				return
 
-			logging.info(f"Processing Response For Submission: {submission} for {self.me.name}")
+			logging.info(f"Sending Message To Queue For Submission: {submission}")
 			reddit_data: RedditData = self.prompt_handler.handle_submission(submission)
 			prompt: str = self.prompt_handler.create_prompt_from_data(reddit_data)
 			q = {'id': submission.id, 'name': self.me.name, 'prompt': prompt, 'type': 'submission'}
@@ -107,12 +107,12 @@ class StreamPolling(object):
 		body = comment.body or ""
 		triggered: int = len([item for item in self.tigger_words if body.lower().__contains__(item.lower())])
 		if triggered > 0:
-			logging.info(f"Triggered")
+			logging.debug(f"Triggered")
 			return True
 
 		banned: int = len([item for item in self.banned_words if body.lower().__contains__(item.lower())])
 		if banned > 0:
-			logging.info(f"Banned Word Encountered")
+			logging.debug(f"Banned Word Encountered")
 			return False
 
 		submission: Submission = comment.submission
@@ -120,7 +120,7 @@ class StreamPolling(object):
 		submission_author: Redditor = submission.author
 
 		if submission.num_comments > 400:
-			logging.info(f"Submission has too many comments")
+			logging.debug(f"Submission has too many comments")
 			return False
 
 		if submission_author.name == self.me.name:

@@ -3,22 +3,32 @@ import time
 
 from shared_code.bot.reddit_bot import RedditBot
 from shared_code.bot.reddit_bot_processor import RedditBotProcessor, RedditSubmissionProcessor
+from shared_code.utility.global_logging_filter import LoggingExtension
 
-
+LoggingExtension.set_global_logging_level(logging.WARNING)
+logging_format = LoggingExtension.get_logging_format()
 class BotRunner:
 
 	@staticmethod
 	def run_bots(bot_names: [str], sub_reddit: str):
-		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s',
+		logging.basicConfig(format=logging_format,
 							level=logging.INFO)
-		logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
 		bots = []
-		for bot_name in bot_names:
+		submission_procs = []
+		for bot_name in bot_names.split(','):
 			bot = RedditBot(bot_name, sub_reddit)
 			bot.name = bot_name
 			bot.daemon = True
 			bot.run()
 			bots.append(bot)
+			time.sleep(1)
+
+		for bot_name in bot_names.split(','):
+			submission_process = RedditSubmissionProcessor(bot_name)
+			submission_process.name = bot_name
+			submission_process.daemon = True
+			submission_process.run()
+			submission_procs.append(submission_process)
 			time.sleep(10)
 		try:
 			while True:
@@ -26,12 +36,12 @@ class BotRunner:
 		except KeyboardInterrupt:
 			logging.info('Shutdown')
 			map(lambda x: x.stop(), bots)
+			map(lambda x: x.stop(), submission_procs)
 			exit(0)
 
 	@staticmethod
 	def run_process(thread_count: int = 1):
-		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
-		logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
+		logging.basicConfig(format=logging_format, level=logging.INFO)
 		procs = []
 		for i in range(thread_count):
 			process = RedditBotProcessor(f"Reply-Thread-{i}")
@@ -49,8 +59,7 @@ class BotRunner:
 
 	@staticmethod
 	def run_all(bot_names: str, sub_reddit: str, thread_count: int = 1):
-		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
-		logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
+		logging.basicConfig(format=logging_format, level=logging.INFO)
 		bots = []
 		submission_procs = []
 		reply_procs = []

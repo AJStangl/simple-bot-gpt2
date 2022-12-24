@@ -14,7 +14,8 @@ class MessageBroker(object):
 																					 encode_policy=TextBase64EncodePolicy())
 		self.queues: dict = {
 			"comment": "message-generator",
-			"submission": "submission-generator"
+			"submission": "submission-generator",
+			"lock": "submission-lock"
 		}
 
 	def put_message(self, queue_name: str, content: Any, time_to_live=None) -> QueueMessage:

@@ -3,7 +3,10 @@ import sys
 import threading
 
 from shared_code.process.reply_process import ReplyProcess, SubmissionProcess
+from shared_code.utility.global_logging_filter import LoggingExtension
 
+LoggingExtension.set_global_logging_level(logging.FATAL)
+logging_format = LoggingExtension.get_logging_format()
 
 class RedditBotProcessor(threading.Thread):
 	def __init__(self, bot_name: str):
@@ -13,14 +16,12 @@ class RedditBotProcessor(threading.Thread):
 
 	@staticmethod
 	def poll_for_reply_queue():
-		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
-		logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
+		logging.basicConfig(format=logging_format, level=logging.INFO)
 		ReplyProcess().poll_for_reply()
 
 	@staticmethod
 	def poll_for_submission_queue():
-		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
-		logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
+		logging.basicConfig(format=logging_format, level=logging.INFO)
 		ReplyProcess().poll_for_submission()
 
 	def run(self):
@@ -38,7 +39,7 @@ class RedditSubmissionProcessor(threading.Thread):
 		self.poll_for_submission_creation_thread = threading.Thread(target=self.poll_for_submission_creation, args=(), daemon=True, name=bot_name)
 
 	def poll_for_submission_creation(self):
-		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
+		logging.basicConfig(format=logging_format, level=logging.INFO)
 		logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
 		SubmissionProcess(bot_name=self.bot_name).poll_for_creation()
 
