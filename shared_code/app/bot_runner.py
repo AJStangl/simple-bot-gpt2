@@ -2,7 +2,7 @@ import logging
 import time
 
 from shared_code.bot.reddit_bot import RedditBot
-from shared_code.bot.reddit_bot_processor import RedditBotProcessor
+from shared_code.bot.reddit_bot_processor import RedditBotProcessor,RedditSubmissionProcessor
 
 
 class BotRunner:
@@ -60,6 +60,13 @@ class BotRunner:
 			bot.daemon = True
 			bot.run()
 			bots.append(bot)
+			time.sleep(1)
+
+		for bot_name in bot_names.split(','):
+			process = RedditSubmissionProcessor(f"{bot_name}")
+			process.daemon = True
+			process.run()
+			procs.append(process)
 			time.sleep(1)
 
 		for i in range(thread_count):

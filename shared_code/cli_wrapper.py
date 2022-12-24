@@ -42,10 +42,10 @@ def cli6():
 
 @cli1.command()
 @click.option("-b", "--bot-names", help='specify the bot name. Must be present in the praw.ini file',
-			  default='KimmieBotGPT,SportsFanBotGhostGPT,LauraBotGPT,NickBotGPT,CriagBotGPT',
+			  default='KimmieBotGPT,SportsFanBotGhostGPT,LauraBotGPT,NickBotGPT,CriagBotGPT,AlbertBotGPT',
 			  show_default=True, required=True)
 @click.option("-s", "--sub-reddit",
-			  help='specify the sub-reddit name(s). Example. CoopAndPabloPlayHouse+THE_Pablop+SubSimGPT2Interactive',
+			  help='specify the sub-reddit name(s). Example. CoopAndPabloPlayHouse',
 			  default='CoopAndPabloPlayHouse', show_default=True, required=True)
 def run_multi_bot(bot_names: str, sub_reddit: str):
 	bots = bot_names.split(",")
@@ -74,10 +74,10 @@ def run_message_processor(threads: int):
 
 @cli5.command()
 @click.option("-b", "--bot-names", help='specify the bot name. Must be present in the praw.ini file',
-			  default='KimmieBotGPT,SportsFanBotGhostGPT,LauraBotGPT,NickBotGPT,CriagBotGPT',
+			  default='KimmieBotGPT,SportsFanBotGhostGPT,LauraBotGPT,NickBotGPT,CriagBotGPT,AlbertBotGPT',
 			  show_default=True, required=True)
 @click.option("-s", "--sub-reddit",
-			  help='specify the sub-reddit name(s). Example. CoopAndPabloPlayHouse+THE_Pablop+SubSimGPT2Interactive',
+			  help='specify the sub-reddit name(s). Example. CoopAndPabloPlayHouse',
 			  default='CoopAndPabloPlayHouse', show_default=True, required=True)
 @click.option("-t", "--threads", help='number of threads to run', default=6, show_default=True, required=True)
 def run_all(bot_names: str, sub_reddit: str, threads: int):

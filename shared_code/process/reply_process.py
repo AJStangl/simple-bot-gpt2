@@ -7,6 +7,7 @@ from multiprocessing import Process
 
 import praw
 import torch
+import random
 from praw.reddit import Comment, Submission, Subreddit
 
 from shared_code.messaging.message_sender import MessageBroker
@@ -36,7 +37,8 @@ class ReplyProcess:
 
 	@staticmethod
 	def reply_to_thing(q: dict):
-		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
+		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s',
+							level=logging.INFO)
 		logging.info(f"Call To Create New Reply To Comment Reply")
 		max_comments = 500
 		try:
@@ -105,7 +107,8 @@ class ReplyProcess:
 	@staticmethod
 	def create_new_submission(q):
 		import logging
-		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
+		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s',
+							level=logging.INFO)
 		logging.info(f"Call To Create New Submission")
 		try:
 			bot_name = q.get("name")
@@ -119,17 +122,20 @@ class ReplyProcess:
 			result: dict = generator.generate_submission(subreddit_name, post_type)
 
 			if result.get("type") == "text":
-				result = subreddit.submit(title=result.get("title"), selftext=result.get("selftext"), flair_id=os.environ["subreddit_flair"])
+				result = subreddit.submit(title=result.get("title"), selftext=result.get("selftext"),
+										  flair_id=os.environ["subreddit_flair"])
 				if result:
 					logging.info(f"Successfully created new submission to {subreddit_name} for {bot_name}")
 
 			if result.get("type") == "link":
-				result = subreddit.submit(title=result.get("title"), url=result.get("url"), flair_id=os.environ["subreddit_flair"])
+				result = subreddit.submit(title=result.get("title"), url=result.get("url"),
+										  flair_id=os.environ["subreddit_flair"])
 				if result:
 					logging.info(f"Successfully created new link submission to {subreddit_name} for {bot_name}")
 
 			if result.get("type") == "image":
-				result = subreddit.submit_image(title=result.get("title"), image_path=result.get("image_path"), flair_id=os.environ["subreddit_flair"])
+				result = subreddit.submit_image(title=result.get("title"), image_path=result.get("image_path"),
+												flair_id=os.environ["subreddit_flair"])
 				if result:
 					logging.info(f"Successfully created new image submission to {subreddit_name} for {bot_name}")
 
@@ -139,3 +145,39 @@ class ReplyProcess:
 		finally:
 			torch.cuda.empty_cache()
 			gc.collect()
+
+
+class SubmissionProcess:
+	def __init__(self, bot_name: str):
+		self.message_broker = MessageBroker()
+		self.bot_name = bot_name
+
+	def poll_for_creation(self):
+		subs = os.environ["SubToPost"].split(",")
+		# 5 in 10 chance image, 3 in one chance text, 1 10 chance text
+		post_type = ["image", "image", "image", "image", "image", "text", "text", "text", "text", "link"]
+		subs = ["CoopAndPabloPlayHouse"]
+		while True:
+			sub = random.choice(subs)
+			bot = self.bot_name
+			topic_type = random.choice(post_type)
+
+			message = {
+				"name": bot,
+				"subreddit": sub,
+				"type": topic_type,
+			}
+			broker = MessageBroker()
+			count = broker.count_message("submission-generator")
+			while count > 1:
+				time.sleep(30)
+			print(f"Sending message to queue for {bot} with post type: {topic_type} to sub {sub}")
+			broker.put_message("submission-generator", json.dumps(message))
+			if topic_type == "image":
+				time.sleep(60 * 60 * random.randint(1, 3))
+			if topic_type == "text":
+				time.sleep(60 * 60 * random.randint(1, 3))
+			if topic_type == "link":
+				time.sleep(60 * 60 * random.randint(1, 3))
+			else:
+				time.sleep(60 * 60 * random.randint(1, 3))

@@ -23,3 +23,6 @@ class MessageBroker(object):
 
 	def delete_message(self, queue_name: str, q):
 		return self.service.get_queue_client(queue_name).delete_message(q)
+
+	def count_message(self, queue_name: str) -> int:
+		return self.service.get_queue_client(queue_name).get_queue_properties().approximate_message_count

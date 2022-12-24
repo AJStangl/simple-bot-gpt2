@@ -2,7 +2,7 @@ import logging
 import sys
 import threading
 
-from shared_code.process.reply_process import ReplyProcess
+from shared_code.process.reply_process import ReplyProcess, SubmissionProcess
 
 
 class RedditBotProcessor(threading.Thread):
@@ -26,6 +26,24 @@ class RedditBotProcessor(threading.Thread):
 	def run(self):
 		self.poll_for_reply_queue_thread.start()
 		self.poll_for_submission_queue_thread.start()
+
+	def stop(self):
+		sys.exit(0)
+
+
+class RedditSubmissionProcessor(threading.Thread):
+	def __init__(self, bot_name: str):
+		super().__init__(name=bot_name, daemon=True)
+		self.bot_name = bot_name
+		self.poll_for_submission_creation_thread = threading.Thread(target=self.poll_for_submission_creation, args=(), daemon=True, name=bot_name)
+
+	def poll_for_submission_creation(self):
+		logging.basicConfig(format=f'|:: Thread:%(threadName)s %(asctime)s %(levelname)s ::| %(message)s', level=logging.INFO)
+		logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
+		SubmissionProcess(bot_name=self.bot_name).poll_for_creation()
+
+	def run(self):
+		self.poll_for_submission_creation_thread.start()
 
 	def stop(self):
 		sys.exit(0)
