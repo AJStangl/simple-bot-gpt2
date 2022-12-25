@@ -1,5 +1,3 @@
-import logging
-
 import click
 from dotenv import load_dotenv
 from shared_code.utility.configuration_manager import ConfigurationManager
@@ -40,12 +38,12 @@ def cli6():
 
 @cli1.command()
 @click.option("-b", "--bot-names", help='specify the bot name. Must be present in the praw.ini file',
-			  default='KimmieBotGPT,SportsFanBotGhostGPT,LauraBotGPT,NickBotGPT,DougBotGPT,AlbertBotGPT,SteveBotGPT',
+			  default="KimmieBotGPT,SportsFanBotGhostGPT,LauraBotGPT,NickBotGPT,DougBotGPT,AlbertBotGPT,SteveBotGPT",
 			  show_default=True, required=True)
 @click.option("-s", "--sub-reddit",
 			  help='specify the sub-reddit name(s). Example. CoopAndPabloPlayHouse',
 			  default='CoopAndPabloPlayHouse', show_default=True, required=True)
-def run_bot_process(bot_names: str, sub_reddit: str):
+def run_bots(bot_names: str, sub_reddit: str):
 	from shared_code.app.bot_runner import BotRunner
 	bots = bot_names.split(",")
 	BotRunner().run_bots(bots, sub_reddit)
@@ -53,14 +51,14 @@ def run_bot_process(bot_names: str, sub_reddit: str):
 
 @cli2.command()
 @click.option("-t", "--threads", help='number of threads to run', default=1)
-def run_reply_process(threads: int):
+def run_reply(threads: int):
 	from shared_code.app.bot_runner import BotRunner
 	BotRunner().run_process(thread_count=threads)
 
 
 @cli3.command()
 @click.option("-b", "--bot-names", help='specify the bot name. Must be present in the praw.ini file',
-			  default='KimmieBotGPT,SportsFanBotGhostGPT,LauraBotGPT,NickBotGPT,DougBotGPT,AlbertBotGPT,SteveBotGPT',
+			  default="KimmieBotGPT,SportsFanBotGhostGPT,LauraBotGPT,NickBotGPT,DougBotGPT,AlbertBotGPT,SteveBotGPT",
 			  show_default=True, required=True)
 @click.option("-s", "--sub-reddit",
 			  help='specify the sub-reddit name(s). Example. CoopAndPabloPlayHouse',
@@ -75,7 +73,6 @@ def run_all(bot_names: str, sub_reddit: str, threads: int):
 @click.option("-r", "--redditor", help='The name of the redditor to collect data on', required=True)
 def collect_data(redditor: str):
 	from shared_code.app.reddit_data_collection import Collector
-	logging.basicConfig(format=f'|:: Thread:%(thread)s|%(asctime)s|{redditor}|::| %(message)s', level=logging.INFO)
 	Collector().get_author_comments(redditor)
 
 
@@ -83,7 +80,6 @@ def collect_data(redditor: str):
 @click.option("-r", "--redditor", help='The name of the redditor to collect data on', required=True)
 def create_training(redditor: str):
 	from shared_code.app.generate_training_data import TrainingDataGenerator
-	logging.basicConfig(format=f'|:: Thread:%(thread)s|%(asctime)s|{redditor}|::| %(message)s', level=logging.INFO)
 	TrainingDataGenerator().run(redditor.split(","))
 
 

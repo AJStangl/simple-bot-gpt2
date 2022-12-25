@@ -2,7 +2,7 @@ import logging
 import sys
 import threading
 
-from shared_code.process.reply_process import ReplyProcess, SubmissionProcess
+from shared_code.process.reply_process import ReplyProcess
 from shared_code.utility.global_logging_filter import LoggingExtension
 
 LoggingExtension.set_global_logging_level(logging.FATAL)
@@ -33,15 +33,14 @@ class RedditBotProcessor(threading.Thread):
 
 
 class RedditSubmissionProcessor(threading.Thread):
-	def __init__(self, bot_name: str):
-		super().__init__(name=bot_name, daemon=True)
-		self.bot_name = bot_name
-		self.poll_for_submission_creation_thread = threading.Thread(target=self.poll_for_submission_creation, args=(), daemon=True, name=bot_name)
+	def __init__(self):
+		super().__init__(daemon=True)
+		self.poll_for_submission_creation_thread = threading.Thread(target=self.poll_for_submission_creation, args=(), daemon=True)
 
 	def poll_for_submission_creation(self):
 		logging.basicConfig(format=logging_format, level=logging.INFO)
 		logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
-		SubmissionProcess(bot_name=self.bot_name).poll_for_creation()
+		ReplyProcess().poll_for_creation()
 
 	def run(self):
 		self.poll_for_submission_creation_thread.start()

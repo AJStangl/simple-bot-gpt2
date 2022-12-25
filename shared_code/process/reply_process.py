@@ -12,8 +12,9 @@ from praw.reddit import Comment, Submission, Subreddit
 from shared_code.messaging.message_sender import MessageBroker
 from shared_code.utility.global_logging_filter import LoggingExtension
 
-LoggingExtension.set_global_logging_level(logging.WARNING)
+LoggingExtension.set_global_logging_level(logging.FATAL)
 logging_format = LoggingExtension.get_logging_format()
+
 
 class ReplyProcess:
 	def __init__(self):
@@ -48,8 +49,7 @@ class ReplyProcess:
 		:param q:
 		:return:
 		"""
-		logging.basicConfig(format=logging_format,
-							level=logging.INFO)
+		logging.basicConfig(format=logging_format, level=logging.INFO)
 		max_comments = 500
 		name = None
 		try:
@@ -96,32 +96,14 @@ class ReplyProcess:
 			logging.error(f"Remote Call Failed: Reply To Comment Reply for {name} with an exception")
 			return
 		finally:
-			torch.cuda.empty_cache()
+			try:
+				torch.cuda.empty_cache()
+			except Exception:
+				pass
 			gc.collect()
 
-	def poll_for_submission(self):
-		"""
-		Polls the message queue for a submission to reply to. In Process Method
-		:return:
-		"""
-		logging.debug(f"Starting Poll For Submission")
-		while True:
-			try:
-				message = self.message_broker.get_message("submission-generator")
-				if message:
-					content = message.content
-					q = json.loads(content)
-					logging.debug(f"Processing Message For Submission")
-					p = Process(target=self.create_new_submission, args=(q,), daemon=True)
-					p.start()
-					self.message_broker.delete_message("submission-generator", message)
-					p.join()
-					logging.debug(f"Finished Processing Submission Queue Item")
-			finally:
-				time.sleep(10)
-
 	@staticmethod
-	def create_new_submission(q):
+	def create_new_submission(q: dict):
 		"""
 		Creates a new submission. Out of process method
 		:param q:
@@ -152,56 +134,62 @@ class ReplyProcess:
 					return
 				else:
 					logging.info(f"Remote Call: Failed to create new submission to {subreddit_name} for {bot_name}")
-					lock = broker.get_message("submission-lock")
-					pop_receipt = lock.pop_receipt
-					broker.delete_message("submission-lock", lock, pop_receipt)
+					broker.clear_queue('submission-lock')
 					return
 
 			if result.get("type") == "link":
 				result = subreddit.submit(title=result.get("title"), url=result.get("url"))
 				if result:
-					logging.info(f"Remote Call: Successfully created new link submission to {subreddit_name} for {bot_name}")
+					logging.info(
+						f"Remote Call: Successfully created new link submission to {subreddit_name} for {bot_name}")
+					broker.clear_queue('submission-lock')
 					return
 				else:
-					logging.info(f"Remote Call: Failed to create new link submission to {subreddit_name} for {bot_name}")
-					lock = broker.get_message("submission-lock")
-					pop_receipt = lock.pop_receipt
-					broker.delete_message("submission-lock", lock, pop_receipt)
+					logging.info(
+						f"Remote Call: Failed to create new link submission to {subreddit_name} for {bot_name}")
+					broker.clear_queue('submission-lock')
 					return
 
 			if result.get("type") == "image":
 				result = subreddit.submit_image(title=result.get("title"), image_path=result.get("image_path"))
 				if result:
-					logging.info(f"Remote Call: Successfully created new image submission to {subreddit_name} for {bot_name}")
+					logging.info(
+						f"Remote Call: Successfully created new image submission to {subreddit_name} for {bot_name}")
 					return
 				else:
-					logging.info(f"Remote Call: Failed To Create New Image Submission to {subreddit_name} for {bot_name}")
-					lock = broker.get_message("submission-lock")
-					pop_receipt = lock.pop_receipt
-					broker.delete_message("submission-lock", lock, pop_receipt)
+					logging.info(
+						f"Remote Call: Failed To Create New Image Submission to {subreddit_name} for {bot_name}")
+					broker.clear_queue('submission-lock')
 					return
 
 		except Exception as e:
 			logging.error(f"Failed To Create New Submission. An exception has occurred: {e}")
-			lock = broker.get_message("submission-lock")
-			pop_receipt = lock.pop_receipt
-			broker.delete_message("submission-lock", lock, pop_receipt)
+			broker.clear_queue('submission-lock')
 			return
 		finally:
 			torch.cuda.empty_cache()
 			gc.collect()
 
-	def delete_lock(self):
+	def poll_for_submission(self):
 		"""
-		Deletes the submission lock
+		Polls the message queue for a submission to reply to. In Process Method
 		:return:
 		"""
-		logging.info(f"Deleting Submission Lock")
-
-class SubmissionProcess:
-	def __init__(self, bot_name: str):
-		self.message_broker = MessageBroker()
-		self.bot_name = bot_name
+		logging.debug(f"Starting Poll For Submission")
+		while True:
+			try:
+				message = self.message_broker.get_message("submission-generator")
+				if message:
+					content = message.content
+					q = json.loads(content)
+					logging.debug(f"Processing Message For Submission")
+					p = Process(target=self.create_new_submission, args=(q,), daemon=True)
+					p.start()
+					self.message_broker.delete_message("submission-generator", message)
+					p.join()
+					logging.debug(f"Finished Processing Submission Queue Item")
+			finally:
+				time.sleep(10)
 
 	def poll_for_creation(self):
 		"""
@@ -209,11 +197,13 @@ class SubmissionProcess:
 		:return:
 		"""
 		# 5 in 10 chance image, 3 in one chance text, 1 10 chance text
+		bots = ['KimmieBotGPT', 'SportsFanBotGhostGPT', 'LauraBotGPT', 'NickBotGPT', 'DougBotGPT', 'AlbertBotGPT',
+				'SteveBotGPT']
 		post_type = ["image", "image", "image", "image", "image", "text", "text", "text", "text", "link"]
 		subs = ["CoopAndPabloPlayHouse"]
 		while True:
 			sub = random.choice(subs)
-			bot = self.bot_name
+			bot = random.choice(bots)
 			topic_type = random.choice(post_type)
 			message = {
 				"name": bot,
@@ -223,11 +213,17 @@ class SubmissionProcess:
 			broker = MessageBroker()
 			submission_lock = broker.count_message("submission-lock")
 
+			if submission_lock == 1:
+				logging.debug(f"Submission Lock Detected. Skipping Submission Creation")
+				time.sleep(10)
+				continue
+
 			if submission_lock == 0:
 				logging.info(f"Sending message to queue for {bot} with post type: {topic_type} to sub {sub}")
+				broker.put_message("submission-lock", json.dumps({"lock": True}), time_to_live=60 * 60)
 				broker.put_message("submission-generator", json.dumps(message))
-				broker.put_message("submission-lock", json.dumps({"lock": True}), time_to_live=60*60)
-				time.sleep(5 * 1)
+				time.sleep(60 * 60 * 4)
+				broker.clear_queue('submission-lock')
 			else:
 				logging.debug(f"Submission Lock Exists. Sleeping for 1 minutes")
-				time.sleep(60 * 1)
+				continue

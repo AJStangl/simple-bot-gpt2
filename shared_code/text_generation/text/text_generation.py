@@ -84,8 +84,8 @@ class ModelTextGenerator:
 				if self.ensure_non_toxic(finalized):
 					reply = finalized
 			attempts += 1
-			if attempts > 10:
-				logging.info(f"Failed to generate text after 10 attempts for {self.model_path}")
+			if attempts > 5:
+				logging.info(f"Failed to generate text after 5 attempts for {self.model_path}")
 				break
 			else:
 				logging.debug(f"Attempting Again...{attempts} for {self.model_path}")
