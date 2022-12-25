@@ -222,7 +222,7 @@ class ReplyProcess:
 				logging.info(f"Sending message to queue for {bot} with post type: {topic_type} to sub {sub}")
 				broker.put_message("submission-lock", json.dumps({"lock": True}), time_to_live=60 * 60)
 				broker.put_message("submission-generator", json.dumps(message))
-				time.sleep(60 * 60 * 4)
+				time.sleep(60 * 60 * 1)
 				broker.clear_queue('submission-lock')
 			else:
 				logging.debug(f"Submission Lock Exists. Sleeping for 1 minutes")
