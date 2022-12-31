@@ -197,8 +197,14 @@ class ReplyProcess:
 		:return:
 		"""
 		# 5 in 10 chance image, 3 in one chance text, 1 10 chance text
-		bots = ['KimmieBotGPT', 'SportsFanBotGhostGPT', 'LauraBotGPT', 'NickBotGPT', 'DougBotGPT', 'AlbertBotGPT',
-				'SteveBotGPT']
+		bots = ['KimmieBotGPT',
+				'SportsFanBotGhostGPT',
+				'LauraBotGPT',
+				'NickBotGPT',
+				'DougBotGPT',
+				'AlbertBotGPT',
+				'SteveBotGPT'
+		]
 		post_type = ["image", "image", "image", "image", "image", "text", "text", "text", "text", "link"]
 		subs = ["CoopAndPabloPlayHouse"]
 		while True:

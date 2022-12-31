@@ -132,10 +132,10 @@ class StreamPolling(object):
 		reply_probability = ReplyProbability(self.me).calculate_reply_probability(comment)
 		random_value = random.random()
 		if random_value < reply_probability:
-			logging.debug(f"{comment} Random Reply Value: {random_value:.3f} Is < Calculated Reply Probability: {(reply_probability):.3f} - Starting Reply")
+			logging.info(f"{comment} Random Reply Value: {random_value:.3f} Is < Calculated Reply Probability: {(reply_probability):.3f} - Starting Reply")
 			return True
 		else:
-			logging.debug(f"{comment} Random Reply Value: {random_value:.3f} Is > Calculated Reply Probability: {(reply_probability):.3f} - No Reply")
+			logging.info(f"{comment} Random Reply Value: {random_value:.3f} Is > Calculated Reply Probability: {(reply_probability):.3f} - No Reply")
 			return False
 
 	def _get_latest_submission(self):

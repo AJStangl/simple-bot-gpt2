@@ -39,7 +39,6 @@ class RedditSubmissionProcessor(threading.Thread):
 
 	def poll_for_submission_creation(self):
 		logging.basicConfig(format=logging_format, level=logging.INFO)
-		logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
 		ReplyProcess().poll_for_creation()
 
 	def run(self):

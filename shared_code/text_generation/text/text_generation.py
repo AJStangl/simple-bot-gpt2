@@ -10,7 +10,6 @@ import torch
 import ftfy
 from detoxify import Detoxify
 from simpletransformers.language_generation import LanguageGenerationModel
-
 from shared_code.handlers.image_generator import ImageGenerator
 from shared_code.handlers.image_searching import ImageHandler
 
@@ -33,8 +32,10 @@ class ModelTextGenerator:
 		self.use_cuda = use_cuda
 		self.devices = ['cuda:0', 'cuda:1']
 		self.model_path: str = os.environ[f"{bot_name}"]
+		self.model = LanguageGenerationModel("gpt2", self.model_path, use_cuda=use_cuda, cuda_device=random.randint(0, 1))
 		self.detoxify = Detoxify('unbiased-small', device=torch.device(random.choice(self.devices) if use_cuda else 'cpu'))
 		self.image_handler: ImageHandler = ImageHandler()
+		self.image_generator = ImageGenerator()
 
 	@staticmethod
 	def capture_tag(test_string: str, expected_tags=None):
@@ -56,7 +57,6 @@ class ModelTextGenerator:
 					return return_string
 
 	def generate_text(self, prompt: str):
-		model = LanguageGenerationModel("gpt2", self.model_path, use_cuda=self.use_cuda, cuda_device=random.randint(0, 1))
 		start_time = time.time()
 		reply = None
 		raw_response = None
@@ -64,7 +64,7 @@ class ModelTextGenerator:
 		attempts = 0
 		while reply is None:
 			try:
-				samples = model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False)
+				samples = self.model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False)
 			except Exception as e:
 				logging.error(f"Failed to generate text for {self.model_path} with an exception")
 				return "", ""
@@ -105,14 +105,13 @@ class ModelTextGenerator:
 
 	def _generate_text_post(self, sub: str) -> dict:
 		try:
-			model = LanguageGenerationModel("gpt2", self.model_path, use_cuda=self.use_cuda, cuda_device=random.randint(0, 1))
 			max_attempts = 5
 			reply = None
 			title_regex = r"<\|sot\|>(.+?)<\|eot\|>"
 			text_body_regex = r"<\|sost\|>(.+?)<\|eost\|>"
 			prompt: str = f"<|ososs r/{sub}|><|sot|>"
 			while reply is None:
-				for text in model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False):
+				for text in self.model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False):
 					# noinspection PyBroadException
 					try:
 						if max_attempts == 0:
@@ -187,7 +186,7 @@ class ModelTextGenerator:
 					max_attempt -= 1
 					continue
 
-				image_path = ImageGenerator().create_image(clean_title)
+				image_path = self.image_generator.create_image(clean_title)
 
 				if self._is_not_none_or_empty(body, image_path):
 					result = {

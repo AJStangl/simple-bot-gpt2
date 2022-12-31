@@ -84,7 +84,6 @@ class Tagger(Tags):
 		:param subreddit: The subreddit to which the submission is posted
 		:return: String with properly formatted tag for a submission
 		"""
-		subreddit = "InContextAppSupport"
 		if link_post:
 			return f"{self._open_tag}{self.link_submission_start_tag} r/{subreddit}{self._close_tag}{self._create_tag(self.title_start_tag)}"
 		else:
@@ -100,7 +99,6 @@ class Tagger(Tags):
 		:param body: The body of the submission
 		:return: The tagged submission
 		"""
-		subreddit = "InContextAppSupport"
 		tag: str = f"{self._open_tag}"
 
 		if is_own_submission and is_link_submission:

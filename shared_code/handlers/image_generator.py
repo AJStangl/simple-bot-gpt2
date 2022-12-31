@@ -29,5 +29,9 @@ class ImageGenerator(object):
 
 		finally:
 			logging.info("Image generated successfully!")
-			torch.cuda.empty_cache()
-			gc.collect()
+			try:
+				torch.cuda.empty_cache()
+				gc.collect()
+			except Exception as e:
+				logging.info("Failed to empty cache")
+				gc.collect()
