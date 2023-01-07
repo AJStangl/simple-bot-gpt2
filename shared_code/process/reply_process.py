@@ -197,14 +197,8 @@ class ReplyProcess:
 		:return:
 		"""
 		# 5 in 10 chance image, 3 in one chance text, 1 10 chance text
-		bots = ['KimmieBotGPT',
-				'SportsFanBotGhostGPT',
-				'LauraBotGPT',
-				'NickBotGPT',
-				'DougBotGPT',
-				'AlbertBotGPT',
-				'SteveBotGPT'
-		]
+		# 'KimmieBotGPT'
+		bots = ['SportsFanBotGhostGPT', 'LauraBotGPT', 'NickBotGPT', 'DougBotGPT', 'AlbertBotGPT', 'SteveBotGPT']
 		post_type = ["image", "image", "image", "image", "image", "text", "text", "text", "text", "link"]
 		subs = ["CoopAndPabloPlayHouse"]
 		while True:
@@ -226,9 +220,9 @@ class ReplyProcess:
 
 			if submission_lock == 0:
 				logging.info(f"Sending message to queue for {bot} with post type: {topic_type} to sub {sub}")
-				broker.put_message("submission-lock", json.dumps({"lock": True}), time_to_live=60 * 60)
+				broker.put_message("submission-lock", json.dumps({"lock": True}), time_to_live=60 * 60 * 4)
 				broker.put_message("submission-generator", json.dumps(message))
-				time.sleep(60 * 60 * 1)
+				time.sleep(60 * 60 * 3)
 				broker.clear_queue('submission-lock')
 			else:
 				logging.debug(f"Submission Lock Exists. Sleeping for 1 minutes")
