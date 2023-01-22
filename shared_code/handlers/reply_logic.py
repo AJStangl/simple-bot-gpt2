@@ -51,6 +51,7 @@ class ReplyProbability:
 			thing_text_content = f'{praw_thing.title} {praw_thing.selftext}'
 			submission_link_flair_text = praw_thing.link_flair_text or ''
 			submission_created_utc = datetime.utcfromtimestamp(praw_thing.created_utc)
+			return 1
 
 		elif isinstance(praw_thing, Comment):
 			thing_text_content = praw_thing.body

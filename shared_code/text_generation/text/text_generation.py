@@ -33,7 +33,9 @@ class ModelTextGenerator:
 		self.devices = ['cuda:0', 'cuda:1']
 		self.model_path: str = os.environ[f"{bot_name}"]
 		self.model = LanguageGenerationModel("gpt2", self.model_path, use_cuda=use_cuda, cuda_device=random.randint(0, 1))
+		self.model_no_cuda = LanguageGenerationModel("gpt2", self.model_path, use_cuda=False)
 		self.detoxify = Detoxify('unbiased-small', device=torch.device(random.choice(self.devices) if use_cuda else 'cpu'))
+		self.detoxify_no_cuda = Detoxify('unbiased-small', device=torch.device('cpu'))
 		self.image_handler: ImageHandler = ImageHandler()
 		self.image_generator = ImageGenerator()
 
@@ -66,7 +68,10 @@ class ModelTextGenerator:
 			try:
 				samples = self.model.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False)
 			except Exception as e:
-				logging.error(f"Failed to generate text for {self.model_path} with an exception")
+				logging.error(f"Failed to generate text for {self.model_path} with an exception... Trying No Cuda Model")
+				samples = self.model_no_cuda.generate(prompt=prompt, args=self.text_generation_parameters, verbose=False)
+			except Exception as e:
+				logging.error(f"Failed to generate text for {self.model_path} with an exception with no cuda model")
 				return "", ""
 
 			sample = samples[0]
