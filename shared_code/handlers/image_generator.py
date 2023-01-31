@@ -11,7 +11,7 @@ class ImageGenerator(object):
 
 	def create_image(self, prompt: str) -> Optional[str]:
 		try:
-			pipe: StableDiffusionPipeline = StableDiffusionPipeline.from_pretrained("/models/StableDiffusionPipeline",
+			pipe: StableDiffusionPipeline = StableDiffusionPipeline.from_pretrained("/models/SexyStableDiffusion",
 																					revision="fp16",
 																					torch_dtype=torch.float16,
 																					safety_checker=None)

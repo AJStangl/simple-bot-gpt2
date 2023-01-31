@@ -131,7 +131,9 @@ class StreamPolling(object):
 
 		reply_probability = ReplyProbability(self.me).calculate_reply_probability(comment)
 		random_value = random.random()
+		# reply_probability = .05
 		if random_value < reply_probability:
+		# if random.random() > 0.5:
 			logging.info(f"{comment} Random Reply Value: {random_value:.3f} Is < Calculated Reply Probability: {(reply_probability):.3f} - Starting Reply")
 			return True
 		else:
