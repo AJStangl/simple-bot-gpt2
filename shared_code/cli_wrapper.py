@@ -70,7 +70,7 @@ def run_all(bot_names: str, sub_reddit: str, threads: int):
 
 
 @cli5.command()
-@click.option("-r", "--redditor", help='The name of the redditor to collect data on', required=True)
+@click.option("-r", "--redditor", help='The name of the redditor to collect data on', required=True, default="Ocbard")
 def collect_data(redditor: str):
 	from shared_code.app.reddit_data_collection import Collector
 	Collector().get_author_comments(redditor)

@@ -117,7 +117,7 @@ class PushShiftClient:
 			return {}
 
 	def get_author_comments(self, author, before, fields=None) -> Union[None, dict]:
-		request_address = f"{self.__base_address}/comment/search/?author={author}&sort=desc&sort_type=created_utc&limit=100"
+		request_address = f"{self.__base_address}/comment/search?author={author}&sort=created_utc&limit=100"
 		if before:
 			request_address += f"&before={before}"
 		if fields:
@@ -129,7 +129,7 @@ class PushShiftClient:
 			raise requests.RequestException("Error in get_author_comments")
 
 	def get_author_submissions(self, author, before, fields=None) -> Union[None, dict]:
-		request_address = f"{self.__base_address}/submission/search/?author={author}&sort=desc&sort_type=created_utc&limit=100"
+		request_address = f"{self.__base_address}/submission/search?author={author}&sort=created_utc&limit=100"
 		if before:
 			request_address += f"&before={before}"
 		if fields:
