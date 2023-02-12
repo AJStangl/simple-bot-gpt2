@@ -4,6 +4,7 @@ import time
 from encodings.utf_8 import decode
 from typing import Union
 
+import praw
 import requests
 from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
@@ -26,38 +27,25 @@ class PushShiftClient:
 		self.__session.mount("https://", self.__adapter)
 		self.__base_address: str = 'https://api.pushshift.io/reddit'
 		self.__reddit_base_address: str = 'https://www.reddit.com/'
+		self.instance = praw.Reddit("LauraBotGPT")
 
-	def get_by_reddit_id(self, reddit_id: str, attempts: int = 0, max_attempts: int = 10):
-		requests_address = f"{self.__reddit_base_address}/{reddit_id}.json"
-		target_data = None
-		if max_attempts > attempts:
-			attempts += 1
-			# noinspection PyBroadException
-			try:
-				response = requests.get(requests_address, headers={"accept": "application/json; charset=UTF-8",
-																   "user-agent": "localhost"})
-				if response.status_code == 429:
-					logger.info("To many requests...Sleeping for 10")
-					time.sleep(10)
-					return self.get_by_reddit_id(reddit_id, attempts)
-				data = self.__handle_response(response, False)
-				for item in data:
-					if item is not None:
-						children = item.get("data").get("children")
-						if children:
-							for child in children:
-								kind = child.get("kind")
-								if kind == "t3":
-									sub_data = child.get("data")
-									target_data = sub_data
-									time.sleep(1)
-									return target_data
-								time.sleep(1)
+	def get_by_reddit_id(self, reddit_id: str):
+		try:
+			requests_address = f"{self.__reddit_base_address}/{reddit_id}"
+			sub_data = self.instance.submission(url=requests_address)
+			target_data = {}
+			bar = {
+				"author": sub_data.author.__str__(),
+				"title": sub_data.title,
+				"selftext": sub_data.selftext,
+				"url": sub_data.url,
+				"is_self": sub_data.is_self
+			}
+			return bar
 
-			except Exception as e:
-				logger.error(e)
-				time.sleep(1)
-				return target_data
+		except Exception as e:
+			logging.error(e)
+			return target_data
 
 	def get_comment_by_id(self, comment_id: str, fields=None, attempts: int = 0, max_attempts: int = 10) -> Union[
 		None, dict]:
@@ -77,12 +65,12 @@ class PushShiftClient:
 				result = self.__handle_response(self.__session.get(request_address))[0]
 				return result
 			except IndexError as index_error:
-				logger.error(f":: IndexError in get_comment_by_id for {comment_id}\t{index_error}")
+				logging.error(f":: IndexError in get_comment_by_id for {comment_id}\t{index_error}")
 				return {}
 			except Exception as e:
-				logger.error(f":: Exception in get_comment_by_id for {comment_id}\t{e}")
+				logging.error(f":: Exception in get_comment_by_id for {comment_id}\t{e}")
 				attempts += 1
-				logger.info(f":: Current attempt: {attempts}")
+				logging.info(f":: Current attempt: {attempts}")
 				time.sleep(1)
 				return self.get_comment_by_id(comment_id, attempts=attempts)
 		else:
@@ -110,7 +98,7 @@ class PushShiftClient:
 					attempts += 1
 					return self.get_submission_by_id(submission_id, attempts=attempts)
 			except Exception as e:
-				logger.error(f":: Exception in get_comment_by_id for {submission_id}\t{e}")
+				logging.error(f":: Exception in get_comment_by_id for {submission_id}\t{e}")
 				attempts += 1
 				return self.get_submission_by_id(submission_id, attempts=attempts)
 		else:
@@ -125,7 +113,7 @@ class PushShiftClient:
 		try:
 			return self.__handle_response(self.__session.get(request_address))
 		except Exception as e:
-			logger.error(f":: Exception in get_comment_by_id for {author}\t{e}")
+			logging.error(f":: Exception in get_comment_by_id for {author}\t{e}")
 			raise requests.RequestException("Error in get_author_comments")
 
 	def get_author_submissions(self, author, before, fields=None) -> Union[None, dict]:
@@ -137,7 +125,7 @@ class PushShiftClient:
 		try:
 			return self.__handle_response(self.__session.get(request_address))
 		except Exception as e:
-			logger.error(f":: Exception in get_author_submissions for {author}\t{e}")
+			logging.error(f":: Exception in get_author_submissions for {author}\t{e}")
 			raise requests.RequestException("Error in get_author_submissions")
 
 	def __handle_response(self, response: requests.Response, do_format=True) -> [{}]:
@@ -147,7 +135,7 @@ class PushShiftClient:
 		:return: A dictionary object of the data
 		"""
 		if response.status_code != 200:
-			logger.info(f":: Status Code: {response.status_code}")
+			logging.info(f":: Status Code: {response.status_code}")
 			return []
 
 		try:
@@ -158,7 +146,7 @@ class PushShiftClient:
 				return loaded
 			return final
 		except Exception as e:
-			logger.error(f":: Exception in handling the api response with: {e}")
+			logging.error(f":: Exception in handling the api response with: {e}")
 			return []
 
 	@staticmethod
@@ -175,15 +163,15 @@ class PushShiftClient:
 		except Exception:
 			return [{}]
 
-	@staticmethod
-	def _get_parent_id(data: dict) -> Union[None, dict]:
+	def _get_parent_id(self, data: dict) -> Union[None, dict]:
 		"""
 		Gets the parent id from a single data dict and partitions on the delimiter "_". If this operation fails it will
 		return none. Other-wise it will return {'type': 't_*', 'parent_id': 'abc123'}
 		:param data: A comment push shift object that is assumed to have a key 'parent_id'
 		:return:  A dictionary object 'type': 't_*', 'parent_id': 'abc123'  where t_* is the type of parent (comment or submission). None if the operation fails.
 		"""
-		parent_id = data.get("parent_id") or ""
+		permalink: str = data.get("permalink")
+		parent_id = self.get_parent_id_from_praw(permalink) or ""
 		if isinstance(parent_id, int):
 			return {}
 		if parent_id == "":
@@ -235,15 +223,15 @@ class PushShiftClient:
 
 		parent_id_dict = self._get_parent_id(comment)
 
-		submission_id = self._get_submission_id_by_link_id(link_id)
+		submission_id: dict = self._get_submission_id_by_link_id(link_id)
+
 		if submission_id:
 			sub_data = self.get_by_reddit_id(submission_id)
 			if sub_data:
 				data_point.submission_author = sub_data.get("author")
 				data_point.submission_title = sub_data.get("title")
-				data_point.submission_title = sub_data.get("title")
 				if sub_data.get("is_self"):
-					data_point.submission_content = sub_data.get('selftext')
+					data_point.submission_content = sub_data.get("selftext")
 				else:
 					data_point.submission_content = sub_data.get("url")
 
@@ -301,4 +289,18 @@ class PushShiftClient:
 		row.GrandParentAuthor = None
 		row.CommentScore = None
 		return row
+
+	def get_parent_id_from_praw(self, perma_link: str, attempts: int = 0, max_attempts: int = 10):
+		try:
+			requests_address = f"{self.__reddit_base_address}{perma_link}"
+			instance = praw.Reddit("LauraBotGPT")
+			comment = instance.comment(url=requests_address)
+			return comment.parent_id
+		except Exception as e:
+			logging.error(e)
+			if attempts < max_attempts:
+				return self.get_parent_id_from_praw(perma_link=perma_link, attempts=attempts + 1)
+			else:
+				return None
+
 
