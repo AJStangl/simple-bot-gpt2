@@ -130,15 +130,17 @@ class StreamPolling(object):
 			return random.randint(1, 2) == 2
 
 		reply_probability = ReplyProbability(self.me).calculate_reply_probability(comment)
-		random_value = random.random()
-		# reply_probability = .05
-		if random_value < reply_probability:
-		# if random.random() > 0.5:
-			logging.info(f"{comment} Random Reply Value: {random_value:.3f} Is < Calculated Reply Probability: {(reply_probability):.3f} - Starting Reply")
+		random_value_1 = random.random()
+		random_value_2 = random.random()
+		if reply_probability == 1:
 			return True
 		else:
-			logging.info(f"{comment} Random Reply Value: {random_value:.3f} Is > Calculated Reply Probability: {(reply_probability):.3f} - No Reply")
-			return False
+			if random_value_1 > random_value_2:
+				logging.info(f"{comment} Random Reply Value 1: {random_value_1:.3f} Is > Random Reply Value 2: {random_value_2:.3f} - Starting Reply")
+				return True
+			else:
+				logging.info(f"{comment} Random Reply Value 1: {random_value_1:.3f} Is < Random Reply Value 2: {random_value_2:.3f} - No Reply")
+				return False
 
 	def _get_latest_submission(self):
 		return list(self.reddit.redditor(self.me.name).submissions.new(limit=1))

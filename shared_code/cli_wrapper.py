@@ -38,7 +38,7 @@ def cli6():
 
 @cli1.command()
 @click.option("-b", "--bot-names", help='specify the bot name. Must be present in the praw.ini file',
-			  default="KimmieBotGPT,SportsFanBotGhostGPT,LauraBotGPT,DougBotGPT,AlbertBotGPT,SteveBotGPT",
+			  default="KimmieBotGPT,SportsFanBotGhostGPT,LauraBotGPT,DougBotGPT,AlbertBotGPT,JakeBotGPT,MikeBotGPT",
 			  show_default=True, required=True)
 @click.option("-s", "--sub-reddit",
 			  help='specify the sub-reddit name(s). Example. CoopAndPabloPlayHouse',
@@ -50,7 +50,7 @@ def run_bots(bot_names: str, sub_reddit: str):
 
 
 @cli2.command()
-@click.option("-t", "--threads", help='number of threads to run', default=1)
+@click.option("-t", "--threads", help='number of threads to run', default=3)
 def run_reply(threads: int):
 	from shared_code.app.bot_runner import BotRunner
 	BotRunner().run_process(thread_count=threads)
@@ -58,7 +58,7 @@ def run_reply(threads: int):
 
 @cli3.command()
 @click.option("-b", "--bot-names", help='specify the bot name. Must be present in the praw.ini file',
-			  default="KimmieBotGPT,SportsFanBotGhostGPT,LauraBotGPT,DougBotGPT,AlbertBotGPT,SteveBotGPT,JakeBotGPT",
+			  default="KimmieBotGPT,SportsFanBotGhostGPT,LauraBotGPT,DougBotGPT,AlbertBotGPT,JakeBotGPT,MikeBotGPT",
 			  show_default=True, required=True)
 @click.option("-s", "--sub-reddit",
 			  help='specify the sub-reddit name(s). Example. CoopAndPabloPlayHouse',
@@ -77,7 +77,7 @@ def collect_data(redditor: str):
 
 
 @cli6.command()
-@click.option("-r", "--redditor", help='The name of the redditor to collect data on', required=True)
+@click.option("-r", "--redditor", help='The name of the redditor to collect data on', required=True, default="wezerl")
 def create_training(redditor: str):
 	from shared_code.app.generate_training_data import TrainingDataGenerator
 	TrainingDataGenerator().run(redditor.split(","))

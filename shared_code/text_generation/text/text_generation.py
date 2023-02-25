@@ -30,11 +30,11 @@ class ModelTextGenerator:
 			'stop_token': '<|endoftext|>'
 		}
 		self.use_cuda = use_cuda
-		self.devices = ['cuda:0', 'cuda:1']
+		self.devices = ['cuda:1']
 		self.model_path: str = os.environ[f"{bot_name}"]
 		self.model = LanguageGenerationModel("gpt2", self.model_path, use_cuda=use_cuda, cuda_device=random.randint(0, 1))
 		self.model_no_cuda = LanguageGenerationModel("gpt2", self.model_path, use_cuda=False)
-		self.detoxify = Detoxify('unbiased-small', device=torch.device(random.choice(self.devices) if use_cuda else 'cpu'))
+		self.detoxify = Detoxify('unbiased-small', device=torch.device(random.choice(self.devices) if self.use_cuda else 'cpu'))
 		self.detoxify_no_cuda = Detoxify('unbiased-small', device=torch.device('cpu'))
 		self.image_handler: ImageHandler = ImageHandler()
 		self.image_generator = ImageGenerator()

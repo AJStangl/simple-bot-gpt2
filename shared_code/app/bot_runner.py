@@ -57,7 +57,7 @@ class BotRunner:
 			exit(0)
 
 	@staticmethod
-	def run_all(bot_names: str, sub_reddit: str, thread_count: int = 1):
+	def run_all(bot_names: str, sub_reddit: str, thread_count: int = 3):
 		logging.basicConfig(format=logging_format, level=logging.INFO)
 		bots = []
 		submission_procs = []

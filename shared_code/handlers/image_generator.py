@@ -17,7 +17,7 @@ class ImageGenerator(object):
 																					safety_checker=None)
 			pipe = pipe.to("cuda")
 
-			image = pipe(prompt, guidance_scale=8, num_inference_steps=200, height=512, width=768).images[0]
+			image = pipe(prompt, height=512, width=512, guidance_scale=20, num_inference_steps=200).images[0]
 
 			image.save("/images/image.png")
 

@@ -14,7 +14,7 @@ class ReplyLogicConfiguration(object):
 		self.new_submission_reply_boost: float = 0.1
 		self.human_author_reply_boost: float = 1.0
 		self.bot_author_reply_boost: float = 0.1
-		self.base_reply_probability: float = 0.3
+		self.base_reply_probability: float = 0.5
 		self.comment_depth_reply_penalty: float = 0.1
 		self.message_mention_reply_probability: float = 1.0
 
