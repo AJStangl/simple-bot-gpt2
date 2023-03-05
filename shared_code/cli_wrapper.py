@@ -38,7 +38,7 @@ def cli6():
 
 @cli1.command()
 @click.option("-b", "--bot-names", help='specify the bot name. Must be present in the praw.ini file',
-			  default="KimmieBotGPT,SportsFanBotGhostGPT,LauraBotGPT,DougBotGPT,AlbertBotGPT,JakeBotGPT,MikeBotGPT",
+			  default="KimmieBotGPT,LauraBotGPT,DougBotGPT,AlbertBotGPT,JakeBotGPT,MikeBotGPT",
 			  show_default=True, required=True)
 @click.option("-s", "--sub-reddit",
 			  help='specify the sub-reddit name(s). Example. CoopAndPabloPlayHouse',
@@ -58,8 +58,9 @@ def run_reply(threads: int):
 
 @cli3.command()
 @click.option("-b", "--bot-names", help='specify the bot name. Must be present in the praw.ini file',
-			  default="KimmieBotGPT,SportsFanBotGhostGPT,LauraBotGPT,DougBotGPT,AlbertBotGPT,JakeBotGPT,MikeBotGPT",
-			  show_default=True, required=True)
+			  default="KimmieBotGPT,LauraBotGPT,DougBotGPT,AlbertBotGPT,JakeBotGPT,MikeBotGPT",
+			  show_default=True,
+			  required=True)
 @click.option("-s", "--sub-reddit",
 			  help='specify the sub-reddit name(s). Example. CoopAndPabloPlayHouse',
 			  default='CoopAndPabloPlayHouse', show_default=True, required=True)

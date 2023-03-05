@@ -43,6 +43,7 @@ class ReplyProcess:
 
 	@staticmethod
 	def reply_to_thing(q: dict):
+		import time
 		from shared_code.text_generation.text.text_generation import ModelTextGenerator
 		"""
 		Replies to a comment or submission. Out of process method
@@ -60,6 +61,7 @@ class ReplyProcess:
 			logging.info(f"Remote Call: Reply To Comment Reply for {name}")
 			generator = ModelTextGenerator(name, torch.cuda.is_available())
 			instance = praw.Reddit(site_name=name)
+			start = time.time()
 			if thing_type == "comment":
 				comment: Comment = instance.comment(id=thing_id)
 				submission: Submission = comment.submission
@@ -73,10 +75,12 @@ class ReplyProcess:
 				text, raw_text = generator.generate_text(prompt)
 				reply = comment.reply(body=text)
 				if reply:
-					logging.info(f"Remote Call Success: Reply To Comment Reply for {name} complete")
+					end = time.time()
+					logging.info(f"Remote Call Success: Reply To Comment Reply for {name} complete in {end - start} seconds")
 					return
 				else:
-					logging.info(f"Remote Call Failed: Reply To Comment Reply for {name} with an error")
+					end = time.time()
+					logging.info(f"Remote Call Failed: Reply To Comment Reply for {name} with an error in {end - start} seconds")
 					return
 
 			if thing_type == "submission":
@@ -87,10 +91,12 @@ class ReplyProcess:
 				text, raw_text = generator.generate_text(prompt)
 				reply = submission.reply(body=text)
 				if reply:
-					logging.info(f"Successfully replied to submission {thing_id}")
+					end = time.time()
+					logging.info(f"Successfully replied to submission {thing_id} in {end - start} seconds")
 					return
 				else:
-					logging.info(f"Failed To Reply To Submission")
+					end = time.time()
+					logging.info(f"Failed To Reply To Submission {thing_id} in {end - start} seconds")
 					return
 		except Exception as e:
 			logging.error(f"Remote Call Failed: Reply To Comment Reply for {name} with an exception")
@@ -99,6 +105,7 @@ class ReplyProcess:
 			try:
 				torch.cuda.empty_cache()
 			except Exception:
+				logging.error(f"Remote Call Failed: Reply To Comment Reply for {name} with an exception")
 				pass
 			gc.collect()
 
@@ -198,7 +205,7 @@ class ReplyProcess:
 		"""
 		# 5 in 10 chance image, 3 in one chance text, 1 10 chance text
 		# 'KimmieBotGPT'SteveBotGPT
-		bots = ['SportsFanBotGhostGPT', 'LauraBotGPT', 'NickBotGPT', 'DougBotGPT', 'AlbertBotGPT', 'JakeBotGPT', 'MikeBotGPT']
+		bots = ['LauraBotGPT', 'NickBotGPT', 'DougBotGPT', 'AlbertBotGPT', 'JakeBotGPT', 'MikeBotGPT']
 		post_type = ["image", "image", "image", "image", "image", "text", "text", "text", "text", "link"]
 		subs = ["CoopAndPabloPlayHouse"]
 		while True:

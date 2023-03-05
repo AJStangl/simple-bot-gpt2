@@ -132,14 +132,23 @@ class StreamPolling(object):
 		reply_probability = ReplyProbability(self.me).calculate_reply_probability(comment)
 		random_value_1 = random.random()
 		random_value_2 = random.random()
+		random_value_3 = random.random()
 		if reply_probability == 1:
 			return True
 		else:
-			if random_value_1 > random_value_2:
-				logging.info(f"{comment} Random Reply Value 1: {random_value_1:.3f} Is > Random Reply Value 2: {random_value_2:.3f} - Starting Reply")
-				return True
+			if reply_probability > random_value_2:
+				if reply_probability > random_value_1:
+					if reply_probability > random_value_3:
+						logging.info(f"{comment} Random Reply Value 1: {random_value_1:.3f} Is > Random Reply Value 2: {random_value_2:.3f} - Random Reply Value 3: {random_value_3:.3f} Is < Random Reply Value 1: {random_value_1:.3f} - Starting Reply")
+						return True
+					else:
+						logging.info(f"{comment} Random Reply Value 1: {random_value_1:.3f} Is > Random Reply Value 2: {random_value_2:.3f} - Starting Reply")
+						return False
+				else:
+					logging.info(f"{comment} Random Reply Value 1: {random_value_3:.3f} Is > Random Reply Value 2: {random_value_2:.3f} - Random Reply Value 3: {random_value_3:.3f} Is < Random Reply Value 1: {random_value_1:.3f} - No Reply")
+					return False
 			else:
-				logging.info(f"{comment} Random Reply Value 1: {random_value_1:.3f} Is < Random Reply Value 2: {random_value_2:.3f} - No Reply")
+				logging.info(f"{comment} Random Reply Value 1: {random_value_1:.3f} Is < Random Reply Value 2: {random_value_1:.3f} - No Reply")
 				return False
 
 	def _get_latest_submission(self):

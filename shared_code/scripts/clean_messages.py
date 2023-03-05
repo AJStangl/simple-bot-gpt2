@@ -6,7 +6,7 @@ if __name__ == '__main__':
 
 	load_dotenv()
 	broker = MessageBroker()
-	for i in range(0, 120):
+	for i in range(0, 250):
 		m = broker.get_message("message-generator")
 		broker.delete_message("message-generator", m)
 	exit(0)
