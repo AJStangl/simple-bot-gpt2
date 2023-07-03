@@ -12,7 +12,7 @@ class BotRunner:
 	@staticmethod
 	def run_bots(bot_names: [str], sub_reddit: str):
 		logging.basicConfig(format=logging_format,
-							level=logging.INFO)
+							level=logging.DEBUG)
 		bots = []
 		submission_procs = []
 		for bot_name in bot_names:
@@ -58,7 +58,7 @@ class BotRunner:
 
 	@staticmethod
 	def run_all(bot_names: str, sub_reddit: str, thread_count: int = 3):
-		logging.basicConfig(format=logging_format, level=logging.INFO)
+		logging.basicConfig(format=logging_format, level=logging.DEBUG)
 		bots = []
 		submission_procs = []
 		reply_procs = []

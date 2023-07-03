@@ -30,7 +30,7 @@ class StreamPolling(object):
 		logging.debug(f"Starting poll for submissions for {self.me.name}")
 		while True:
 			try:
-				submission_stream = self.subreddit.stream.submissions(pause_after=0, skip_existing=True)
+				submission_stream = self.subreddit.stream.submissions(skip_existing=True)
 				for submission in submission_stream:
 					self._handle_submission(submission)
 					continue
@@ -44,7 +44,7 @@ class StreamPolling(object):
 		logging.debug(f"Starting poll for comments for {self.me.name}")
 		while True:
 			try:
-				comment_stream = self.subreddit.stream.comments(pause_after=0, skip_existing=True)
+				comment_stream = self.subreddit.stream.comments(skip_existing=True)
 				for comment in comment_stream:
 					self._handle_comment(comment)
 					continue

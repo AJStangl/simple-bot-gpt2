@@ -205,7 +205,7 @@ class ReplyProcess:
 		"""
 		# 5 in 10 chance image, 3 in one chance text, 1 10 chance text
 		# 'KimmieBotGPT'SteveBotGPT
-		bots = ['LauraBotGPT', 'NickBotGPT', 'DougBotGPT', 'AlbertBotGPT', 'JakeBotGPT', 'MikeBotGPT']
+		bots = ['LauraBotGPT', 'DougBotGPT', 'AlbertBotGPT', 'JakeBotGPT', 'MikeBotGPT']
 		post_type = ["image", "image", "image", "image", "image", "text", "text", "text", "text", "link"]
 		subs = ["CoopAndPabloPlayHouse"]
 		while True:
